@@ -17,6 +17,7 @@ router.post('/validate-reset-token', validateResetTokenSchema, validateResetToke
 router.get('/', authorize(Role.Admin), getAll);
 router.get('/:id', authorize(), getById);
 router.post('/', authorize(Role.Admin), createSchema, create);
+// router.post('/',  createSchema, create);
 router.put('/:id', authorize(), updateSchema, update);
 router.delete('/:id', authorize(), _delete);
 
@@ -116,13 +117,13 @@ function getById(req, res, next) {
 
 function createSchema(req, res, next) {
     const schema = Joi.object({
-        title: Joi.string().required(),
+        
         firstName: Joi.string().required(),
         lastName: Joi.string().required(),
-        email: Joi.string().email().required(),
+        username: Joi.string().required(),
         password: Joi.string().min(6).required(),
         confirmPassword: Joi.string().valid(Joi.ref('password')).required(),
-        role: Joi.string().valid(Role.Admin, Role.Staff, Role.User).required()
+        role: Joi.string().valid(Role.Admin, Role.Registrar, Role.Student,Role.Teacher).required()
     });
     validateRequest(req, next, schema);
 }
