@@ -4,7 +4,7 @@
         "port": 3306,
         "user": "root",
         "password": "password",
-        "database": "node-mysql-signup-verification-api"
+        "database": "gradingapiwithsignin"
     },
     "secret": "xavier",
     "emailFrom": "info@node-mysql-signup-verification-api.com",
