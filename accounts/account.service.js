@@ -9,15 +9,9 @@ const Role = require('_helpers/role');
 module.exports = {
     authenticate,
     refreshToken,
-    revokeToken,
-   
-    validateResetToken,
-   
-    getAll,
-    getById,
-    create,
-    update,
-    delete: _delete
+    revokeToken,   
+    validateResetToken,   
+
 };
 
 async function authenticate({ username, password, ipAddress }) {
@@ -92,67 +86,7 @@ async function validateResetToken({ token }) {
 }
 
 
-async function getAll() {
-    const accounts = await db.Account.findAll();
-    return accounts.map(x => basicDetails(x));
-}
-
-async function getById(id) {
-    const account = await getAccount(id);
-    return basicDetails(account);
-}
-
-async function create(params) {
-    // validate
-    if (await db.Account.findOne({ where: { username: params.username } })) {
-        throw 'username "' + params.username + '" is already registered';
-    }
-
-    const account = new db.Account(params);
-    // account.verified = Date.now();
-
-    // hash password
-    account.passwordHash = await hash(params.password);
-
-    // save account
-    await account.save();
-
-    return account;
-}
-
-async function update(id, params) {
-    const account = await getAccount(id);
-
-    // validate (if email was changed)
-    if (params.username && account.username !== params.username && await db.Account.findOne({ where: { username: params.username } })) {
-        throw 'Username "' + params.username + '" is already taken';
-    }
-
-    // hash password if it was entered
-    if (params.password) {
-        params.passwordHash = await hash(params.password);
-    }
-
-    // copy params to account and save
-    Object.assign(account, params);
-    account.updated = Date.now();
-    await account.save();
-
-    return basicDetails(account);
-}
-
-async function _delete(id) {
-    const account = await getAccount(id);
-    await account.destroy();
-}
-
 // helper functions
-
-async function getAccount(id) {
-    const account = await db.Account.findByPk(id);
-    if (!account) throw 'Account not found';
-    return account;
-}
 
 async function getRefreshToken(token) {
     const refreshToken = await db.RefreshToken.findOne({ where: { token } });
@@ -160,9 +94,7 @@ async function getRefreshToken(token) {
     return refreshToken;
 }
 
-async function hash(password) {
-    return await bcrypt.hash(password, 10);
-}
+
 
 function generateJwtToken(account) {
     // create a jwt token containing the account id that expires in 15 minutes
