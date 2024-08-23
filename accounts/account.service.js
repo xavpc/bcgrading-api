@@ -24,7 +24,7 @@ async function authenticate({ username, password, ipAddress }) {
     const account = await db.Account.scope('withHash').findOne({ where: { username } });
 
     if (!account || !(await bcrypt.compare(password, account.passwordHash))) {
-        throw 'Email or password is incorrect';
+        throw 'username or password is incorrect';
     }
 
     // authentication successful so generate jwt and refresh tokens
@@ -166,7 +166,7 @@ async function hash(password) {
 
 function generateJwtToken(account) {
     // create a jwt token containing the account id that expires in 15 minutes
-    return jwt.sign({ sub: account.id, id: account.id }, config.secret, { expiresIn: '1m' });
+    return jwt.sign({ sub: account.id, id: account.id }, config.secret, { expiresIn: '30m' });
 }
 
 function generateRefreshToken(account, ipAddress) {
