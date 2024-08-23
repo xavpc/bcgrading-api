@@ -23,10 +23,10 @@ module.exports = {
     delete: _delete
 };
 
-async function authenticate({ email, password, ipAddress }) {
-    const account = await db.Account.scope('withHash').findOne({ where: { email } });
+async function authenticate({ username, password, ipAddress }) {
+    const account = await db.Account.scope('withHash').findOne({ where: { username } });
 
-    if (!account || !account.isVerified || !(await bcrypt.compare(password, account.passwordHash))) {
+    if (!account || !(await bcrypt.compare(password, account.passwordHash))) {
         throw 'Email or password is incorrect';
     }
 
@@ -77,55 +77,9 @@ async function revokeToken({ token, ipAddress }) {
     await refreshToken.save();
 }
 
-async function register(params, origin) {
-    // validate
-    if (await db.Account.findOne({ where: { email: params.email } })) {
-        // send already registered error in email to prevent account enumeration
-        return await sendAlreadyRegisteredEmail(params.email, origin);
-    }
 
-    // create account object
-    const account = new db.Account(params);
 
-    // first registered account is an admin
-    const isFirstAccount = (await db.Account.count()) === 0;
-    account.role = isFirstAccount ? Role.Admin : Role.User;
-    account.verificationToken = randomTokenString();
 
-    // hash password
-    account.passwordHash = await hash(params.password);
-
-    // save account
-    await account.save();
-
-    // send email
-    await sendVerificationEmail(account, origin);
-}
-
-async function verifyEmail({ token }) {
-    const account = await db.Account.findOne({ where: { verificationToken: token } });
-
-    if (!account) throw 'Verification failed';
-
-    account.verified = Date.now();
-    account.verificationToken = null;
-    await account.save();
-}
-
-async function forgotPassword({ email }, origin) {
-    const account = await db.Account.findOne({ where: { email } });
-
-    // always return ok response to prevent email enumeration
-    if (!account) return;
-
-    // create reset token that expires after 24 hours
-    account.resetToken = randomTokenString();
-    account.resetTokenExpires = new Date(Date.now() + 24*60*60*1000);
-    await account.save();
-
-    // send email
-    await sendPasswordResetEmail(account, origin);
-}
 
 async function validateResetToken({ token }) {
     const account = await db.Account.findOne({
@@ -140,15 +94,6 @@ async function validateResetToken({ token }) {
     return account;
 }
 
-async function resetPassword({ token, password }) {
-    const account = await validateResetToken({ token });
-
-    // update password and remove reset token
-    account.passwordHash = await hash(password);
-    account.passwordReset = Date.now();
-    account.resetToken = null;
-    await account.save();
-}
 
 async function getAll() {
     const accounts = await db.Account.findAll();
@@ -162,12 +107,12 @@ async function getById(id) {
 
 async function create(params) {
     // validate
-    if (await db.Account.findOne({ where: { email: params.email } })) {
-        throw 'Email "' + params.email + '" is already registered';
+    if (await db.Account.findOne({ where: { email: params.username } })) {
+        throw 'username "' + params.username + '" is already registered';
     }
 
     const account = new db.Account(params);
-    account.verified = Date.now();
+    // account.verified = Date.now();
 
     // hash password
     account.passwordHash = await hash(params.password);
@@ -182,8 +127,8 @@ async function update(id, params) {
     const account = await getAccount(id);
 
     // validate (if email was changed)
-    if (params.email && account.email !== params.email && await db.Account.findOne({ where: { email: params.email } })) {
-        throw 'Email "' + params.email + '" is already taken';
+    if (params.username && account.username !== params.username && await db.Account.findOne({ where: { username: params.username } })) {
+        throw 'Username "' + params.username + '" is already taken';
     }
 
     // hash password if it was entered
