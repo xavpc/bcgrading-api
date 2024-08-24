@@ -10,10 +10,12 @@ const Role = require('_helpers/role');
 module.exports = {
 
 AdminCreateAccount,
-getAll,
-getById,
-update,
-delete: _delete
+AdminGetAllAccounts,
+AdmindGetAccountById,
+AdminUpdateAccount,
+AdminUpdatePassword,
+AdminDeleteAccount,
+AdminReactivateAccount
 };
 
 async function AdminCreateAccount(params) {
@@ -39,20 +41,55 @@ async function hash(password) {
 }
 
 
-async function getAll() {
+function formatDate(date) {
+    const d = new Date(date);
+    const formattedDate = d.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: '2-digit'
+    });
+    const formattedTime = d.toLocaleTimeString('en-US', {
+        hour: 'numeric',
+        minute: 'numeric',
+        second: 'numeric',
+        hour12: true
+    });
+    return `${formattedDate} ${formattedTime}`;
+}
+
+async function AdminGetAllAccounts() {
     const accounts = await db.Account.findAll();
-    return accounts.map(x => basicDetails(x));
+    
+    return accounts.map(account => {
+        const acc = account.toJSON();
+        return {
+            ...acc,
+            created: formatDate(acc.created),
+            updated: acc.updated ? formatDate(acc.updated) : null,
+            dateReactivated: acc.dateReactivated ? formatDate(acc.dateReactivated) : null,
+            dateDeleted: acc.dateDeleted ? formatDate(acc.dateDeleted) : null
+        };
+    });
 }
 
-async function getById(id) {
-    const account = await getAccount(id);
-    return basicDetails(account);
+
+async function AdmindGetAccountById(id) {
+    const account = await db.Account.findByPk(id);
+    if (!account) throw 'Account not found';
+
+    return {
+        ...account.toJSON(),
+        created: formatDate(account.created),
+        updated: account.updated ? formatDate(account.updated) : null,
+        dateReactivated: account.dateReactivated ? formatDate(account.dateReactivated) : null,
+        dateDeleted: account.dateDeleted ? formatDate(account.dateDeleted) : null
+    };
 }
 
 
 
-async function update(id, params) {
-    const account = await getAccount(id);
+async function AdminUpdateAccount(id, params) {
+    const account = await db.Account.findByPk(id);
 
     // validate (if email was changed)
     if (params.username && account.username !== params.username && await db.Account.findOne({ where: { username: params.username } })) {
@@ -69,13 +106,72 @@ async function update(id, params) {
     account.updated = Date.now();
     await account.save();
 
-    return basicDetails(account);
+    return account;
 }
 
-async function _delete(id) {
-    const account = await getAccount(id);
-    await account.destroy();
+async function AdminUpdatePassword(id, params) {
+    const account = await db.Account.findByPk(id);
+
+
+    // hash password if it was entered
+    if (params.password) {
+        params.passwordHash = await hash(params.password);
+    }
+
+    // copy params to account and save
+    Object.assign(account, params);
+    account.updated = Date.now();
+    await account.save();
+
+    return account;
 }
+
+
+async function AdminDeleteAccount(id, params) {
+    const account = await db.Account.findByPk(id);
+    const currentUserId = await db.Account.findByPk(id);
+   
+
+    if (!account) throw 'Account not found';
+
+    // Check if the current user is an admin and is trying to delete their own account or another admin's account
+    if (currentUserId === id || account.role === "Admin") {
+        throw 'Cannot delete Admin Account or own account';
+    }
+    // hash password if it was entered
+   
+
+    // copy params to account and save
+    Object.assign(account, params);
+    account.isActive = false;
+    account.isDeleted = true;
+    account.dateDeleted = Date.now();
+    account.updated = Date.now();
+    await account.save();
+
+    return account;
+}
+
+async function AdminReactivateAccount(id, params) {
+    const account = await db.Account.findByPk(id);
+
+
+    // hash password if it was entered
+   
+
+    // copy params to account and save
+    Object.assign(account, params);
+    account.isDeleted = false;
+    account.isActive = true;
+    account.dateReactivated = Date.now();
+    account.updated = Date.now();
+    await account.save();
+
+    return account;
+}
+
+
+
 
 
 

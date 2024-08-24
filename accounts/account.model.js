@@ -17,7 +17,9 @@ function model(sequelize) {
         resetTokenExpires: { type: DataTypes.DATE },
         passwordReset: { type: DataTypes.DATE },
         created: { type: DataTypes.DATE, allowNull: false, defaultValue: DataTypes.NOW },
-        updated: { type: DataTypes.DATE },
+        updated: { type: DataTypes.DATE},
+        dateDeleted: { type: DataTypes.DATE},
+        dateReactivated: { type: DataTypes.DATE},
         isActive: { type: DataTypes.BOOLEAN, defaultValue: true },
         isDeleted: { type: DataTypes.BOOLEAN, defaultValue: false }
         // isVerified: {

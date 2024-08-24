@@ -21,6 +21,10 @@ async function authenticate({ username, password, ipAddress }) {
         throw 'username or password is incorrect';
     }
 
+    if (account.isDeleted) {
+        throw 'Account is deleted';
+    }
+
     // authentication successful so generate jwt and refresh tokens
     const jwtToken = generateJwtToken(account);
     const refreshToken = generateRefreshToken(account, ipAddress);
@@ -112,11 +116,11 @@ function generateRefreshToken(account, ipAddress) {
 }
 
 function randomTokenString() {
-    return crypto.randomBytes(40).toString('hex');
+    return crypto.randomBytes(100).toString('hex');
 }
 
 function basicDetails(account) {
-    const { id, firstName, lastName, username, role, created, updated, isVerified, isActive, isDeleted } = account;
-    return { id, firstName, lastName, username, role, created, updated, isVerified, isActive, isDeleted };
+    const { id,  username, role, isActive, isDeleted } = account;
+    return { id, username, role, isActive, isDeleted };
 }
 
