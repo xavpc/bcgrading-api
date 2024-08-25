@@ -58,7 +58,9 @@ function formatDate(date) {
 }
 
 async function AdminGetAllAccounts() {
-    const accounts = await db.Account.findAll();
+    const accounts = await db.Account.findAll({
+        where: {  isActive: true, isDeleted: false }
+    });
     
     return accounts.map(account => {
         const acc = account.toJSON();
@@ -138,7 +140,6 @@ async function AdminDeleteAccount(id, params) {
     if (currentUserId === id || account.role === "Admin") {
         throw 'Cannot delete Admin Account or own account';
     }
-    // hash password if it was entered
    
 
     // copy params to account and save
