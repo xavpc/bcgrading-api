@@ -23,6 +23,33 @@ async function initialize() {
     db.Account.hasMany(db.RefreshToken, { onDelete: 'CASCADE' });
     db.RefreshToken.belongsTo(db.Account);
     
+
+
+    //Not part of accounts db models
+    db.Yearlist = require('../-models/year.model.js')(sequelize);
+    
+    db.Semesterlist = require('../-models/semester.model.js')(sequelize);
+
+    db.Subjectlist = require('../-models/subjects.model.js')(sequelize);
+
+    db.Classlist = require('../-models/classlist.model.js')(sequelize);
+
+
+    //db relationships
+
+    
+    db.Yearlist.belongsTo(db.Classlist, { foreignKey: 'year'});
+    db.Classlist.hasMany(db.Yearlist, { foreignKey: 'year', as: 'ClassListByYear' });
+
+
+    db.Semesterlist.belongsTo(db.Classlist, { foreignKey: 'semester'});
+    db.Classlist.hasMany(db.Semesterlist, { foreignKey: 'semester', as: 'ClassListBySemester' });
+
+
+    db.Subjectlist.belongsTo(db.Classlist, { foreignKey: 'subjectcode'});
+    db.Classlist.hasMany(db.Subjectlist, { foreignKey: 'subjectcode', as: 'ClassListBySubject' });
+
+
     // sync all models with database
     await sequelize.sync();
 }

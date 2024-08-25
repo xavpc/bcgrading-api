@@ -16,6 +16,7 @@ app.use(cors({ origin: (origin, callback) => callback(null, true), credentials: 
 // api routes
 app.use('/accounts', require('./accounts/accounts.controller'));
 app.use('/admin', require('./accounts/admins.controller'));
+app.use('/registrar', require('./-registrars/registrars.controller'));
 
 
 // global error handler
