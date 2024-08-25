@@ -10,6 +10,7 @@ const adminService = require('./admin.service');
 // routes
 router.post('/', authorize(Role.Admin), createSchema, AdminCreateAccount);
 router.get('/', authorize(Role.Admin), AdminGetAllAccounts);
+router.get('/deleted', authorize(Role.Admin), AdminGetInactiveAccounts);
 router.get('/:id', authorize(), AdmindGetAccountById);
 router.put('/:id', authorize(), updateSchema, AdminUpdateAccount);
 router.put('/updatepassword/:id', authorize(Role.Admin), passwordSchema, AdminUpdatePassword);
@@ -42,6 +43,13 @@ function AdminGetAllAccounts(req, res, next) {
         .then(accounts => res.json(accounts))
         .catch(next);
 }
+function AdminGetInactiveAccounts(req, res, next) {
+    adminService.AdminGetInactiveAccounts()
+        .then(accounts => res.json(accounts))
+        .catch(next);
+}
+
+
 
 function AdmindGetAccountById(req, res, next) {
     // users can get their own account and admins can get any account

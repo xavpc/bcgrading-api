@@ -11,6 +11,7 @@ module.exports = {
 
 AdminCreateAccount,
 AdminGetAllAccounts,
+AdminGetInactiveAccounts,
 AdmindGetAccountById,
 AdminUpdateAccount,
 AdminUpdatePassword,
@@ -74,9 +75,26 @@ async function AdminGetAllAccounts() {
     });
 }
 
+async function AdminGetInactiveAccounts() {
+    const accounts = await db.Account.findAll({
+        where: {  isActive: false, isDeleted: true }
+    });
+    
+    return accounts.map(account => {
+        const acc = account.toJSON();
+        return {
+            ...acc,
+            created: formatDate(acc.created),
+            updated: acc.updated ? formatDate(acc.updated) : null,
+            dateReactivated: acc.dateReactivated ? formatDate(acc.dateReactivated) : null,
+            dateDeleted: acc.dateDeleted ? formatDate(acc.dateDeleted) : null
+        };
+    });
+}
 
 async function AdmindGetAccountById(id) {
     const account = await db.Account.findByPk(id);
+
     if (!account) throw 'Account not found';
 
     return {
