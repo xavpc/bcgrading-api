@@ -49,6 +49,8 @@ async function initialize() {
     db.Subjectlist.belongsTo(db.Classlist, { foreignKey: 'subjectcode'});
     db.Classlist.hasMany(db.Subjectlist, { foreignKey: 'subjectcode', as: 'ClassListBySubject' });
 
+   
+
 
     // sync all models with database
     await sequelize.sync();

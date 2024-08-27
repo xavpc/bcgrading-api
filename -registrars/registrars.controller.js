@@ -18,11 +18,21 @@ router.get('/year/:year', authorize([Role.Admin, Role.Registrar]), getClassesByY
 router.get('/semester/:semester', authorize([Role.Admin, Role.Registrar]),getClassesBySemester);
 router.get('/subject/:subjectcode',authorize([Role.Admin, Role.Registrar]), getClassesBySubject);
 router.get('/year/:year/semester/:semester',authorize([Role.Admin, Role.Registrar]), getClassesByYearAndSemester);
+
+router.get('/semester/:semester/year/:year',authorize([Role.Admin, Role.Registrar]), getClassesByYearAndSemester);
+
 router.get('/year/:year/subject/:subjectcode',authorize([Role.Admin, Role.Registrar]), getClassesByYearAndSubject);
+
+router.get('/subject/:subjectcode/year/:year',authorize([Role.Admin, Role.Registrar]), getClassesByYearAndSubject);
+
 router.get('/semester/:semester/subject/:subjectcode',authorize([Role.Admin, Role.Registrar]), getClassesBySemesterAndSubject);
+
+router.get('/subject/:subjectcode/semester/:semester',authorize([Role.Admin, Role.Registrar]), getClassesBySemesterAndSubject);
+
 router.get('/year/:year/semester/:semester/subject/:subjectcode',authorize([Role.Admin, Role.Registrar]), getClassesByYearAndSemesterAndSubject);
 
-
+router.post('/addclass', authorize(Role.Registrar), newclassSchema,addnewclass);
+router.post('/addsubject', authorize(Role.Registrar), newsubjectSchema,addSubject);
 
 module.exports = router;
 
@@ -89,4 +99,46 @@ function getClassesByYearAndSemesterAndSubject(req, res, next) {
     Service.getClassesByYearAndSemesterAndSubject(req.params.year, req.params.semester, req.params.subjectcode)
         .then(yearandsemesterandsubject => res.json(yearandsemesterandsubject))
         .catch(next)
+}
+
+
+function addnewclass(req, res, next) {
+    Service.addNewClass(req.body)
+        .then(result => res.json({
+            message: result.message,
+            class: result.class
+        }))
+        .catch(next);
+}
+
+//schema functions
+
+function newclassSchema(req, res, next) {
+    const schema = Joi.object( {   
+        subjectcode: Joi.string().required(),
+        semester: Joi.string().required(),
+        year: Joi.string().required(),
+       
+        teacherid: Joi.number().integer().min(0),
+    });
+    validateRequest(req, next, schema);
+}
+
+
+function addSubject(req, res, next) {
+    Service.addSubject(req.body)
+        .then(result => res.json({
+            message: result.message,
+            class: result.class
+        }))
+        .catch(next);
+}
+
+function newsubjectSchema(req, res, next) {
+    const schema = Joi.object( {   
+        subjectcode: Joi.string().required(),
+        title: Joi.string().required(),
+      
+    });
+    validateRequest(req, next, schema);
 }
