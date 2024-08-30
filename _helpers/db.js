@@ -1,8 +1,11 @@
 const config = require('config.json');
 const mysql = require('mysql2/promise');
 const { Sequelize } = require('sequelize');
+const initializeData = require('./initialize.js');
 
-module.exports = db = {};
+const db = {}; // Define db object
+
+module.exports = db; // Export db object
 
 initialize();
 
@@ -17,7 +20,7 @@ async function initialize() {
 
      // Assign Sequelize instance to the db object
      db.sequelize = sequelize;
-     db.Sequelize = Sequelize;
+     
 
     // init models and add them to the exported db object
     db.Account = require('../accounts/account.model')(sequelize);
@@ -39,25 +42,40 @@ async function initialize() {
     db.Classlist = require('../-models/classlist.model.js')(sequelize);
 
 
-    //db relationships
-
-    
-    db.Yearlist.belongsTo(db.Classlist, { foreignKey: 'year'});
-    db.Classlist.hasMany(db.Yearlist, { foreignKey: 'year' });
-
-
-    db.Semesterlist.belongsTo(db.Classlist, { foreignKey: 'semester'});
-    db.Classlist.hasMany(db.Semesterlist, { foreignKey: 'semester'});
-
-    db.Classlist.hasOne(db.Subjectlist, { foreignKey: 'subjectcode'});
-    db.Subjectlist.belongsTo(db.Classlist, { foreignKey: 'subjectcode'});
-    
+   
 
    
 
 
-    // sync all models with database
-    await sequelize.sync();
+   
+  
 
-    // await sequelize.sync({ alter: true });
+    // await sequelize.sync();
+
+
+    // sync all models with database first para di mag error
+    await sequelize.sync({ alter: true });
+
+    // Now add the relationships
+    addRelationships();
+
+    // Sync again to apply the relationships
+    await sequelize.sync({ alter: true });
+
+    await initializeData(db); 
+
+}
+
+
+ //db relationships
+function addRelationships() {
+    // Define relationships between models
+    db.Yearlist.belongsTo(db.Classlist, { foreignKey: 'year' });
+    db.Classlist.hasMany(db.Yearlist, { foreignKey: 'year' });
+
+    db.Semesterlist.belongsTo(db.Classlist, { foreignKey: 'semester' });
+    db.Classlist.hasMany(db.Semesterlist, { foreignKey: 'semester' });
+
+    db.Classlist.hasOne(db.Subjectlist, { foreignKey: 'subjectcode' });
+    db.Subjectlist.belongsTo(db.Classlist, { foreignKey: 'subjectcode' });
 }
