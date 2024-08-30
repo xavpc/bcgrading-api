@@ -15,6 +15,10 @@ async function initialize() {
     // connect to db
     const sequelize = new Sequelize(database, user, password, { dialect: 'mysql' });
 
+     // Assign Sequelize instance to the db object
+     db.sequelize = sequelize;
+     db.Sequelize = Sequelize;
+
     // init models and add them to the exported db object
     db.Account = require('../accounts/account.model')(sequelize);
     db.RefreshToken = require('../accounts/refresh-token.model')(sequelize);
@@ -39,19 +43,21 @@ async function initialize() {
 
     
     db.Yearlist.belongsTo(db.Classlist, { foreignKey: 'year'});
-    db.Classlist.hasMany(db.Yearlist, { foreignKey: 'year', as: 'ClassListByYear' });
+    db.Classlist.hasMany(db.Yearlist, { foreignKey: 'year' });
 
 
     db.Semesterlist.belongsTo(db.Classlist, { foreignKey: 'semester'});
-    db.Classlist.hasMany(db.Semesterlist, { foreignKey: 'semester', as: 'ClassListBySemester' });
+    db.Classlist.hasMany(db.Semesterlist, { foreignKey: 'semester'});
 
-
+    db.Classlist.hasOne(db.Subjectlist, { foreignKey: 'subjectcode'});
     db.Subjectlist.belongsTo(db.Classlist, { foreignKey: 'subjectcode'});
-    db.Classlist.hasMany(db.Subjectlist, { foreignKey: 'subjectcode', as: 'ClassListBySubject' });
+    
 
    
 
 
     // sync all models with database
     await sequelize.sync();
+
+    // await sequelize.sync({ alter: true });
 }

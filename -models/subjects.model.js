@@ -11,9 +11,9 @@ function model(sequelize) {
         dateDeleted: { type: DataTypes.DATE},
         dateReactivated: { type: DataTypes.DATE},
         isActive: { type: DataTypes.BOOLEAN, defaultValue: true },
-        isDeleted: { type: DataTypes.BOOLEAN, defaultValue: false }
+        isDeleted: { type: DataTypes.BOOLEAN, defaultValue: false },
 
-      
+     
     };
 
     const options = {

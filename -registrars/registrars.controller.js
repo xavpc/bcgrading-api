@@ -8,7 +8,7 @@ const Service = require('./registrar.service');
 
 
 
-router.get('/', authorize([Role.Admin, Role.Registrar]), getAll);
+router.get('/',  getAll);
 router.get('/years',  authorize([Role.Admin, Role.Registrar]), getAllYear);
 router.get('/semesters' ,authorize([Role.Admin, Role.Registrar]), getAllSemester);
 router.get('/subjects', authorize([Role.Admin, Role.Registrar]), getAllSubject);
