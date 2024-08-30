@@ -14,8 +14,9 @@ router.get('/semesters' ,authorize([Role.Admin, Role.Registrar]), getAllSemester
 router.get('/subjects', authorize([Role.Admin, Role.Registrar]), getAllSubject);
 
 
-router.post('/addclass', authorize(Role.Registrar), newclassSchema,addnewclass);
+router.post('/addclass', newclassSchema,addnewclass);
 router.post('/addsubject', authorize(Role.Registrar), newsubjectSchema,addSubject);
+router.post('/addstudentToclass', addStudentToClassSchema,addStudentToClass);
 
 module.exports = router;
 
@@ -82,6 +83,29 @@ function newsubjectSchema(req, res, next) {
         subjectcode: Joi.string().required(),
         title: Joi.string().required(),
       
+    });
+    validateRequest(req, next, schema);
+}
+
+
+function addStudentToClass(req, res, next) {
+    Service.addStudentToClass(req.body)
+        .then(result => res.json({
+            message: result.message,
+            class: result.class
+        }))
+        .catch(next);
+}
+
+//schema functions
+
+function addStudentToClassSchema(req, res, next) {
+    const schema = Joi.object( {   
+        classid: Joi.number().required(),
+        studentid: Joi.number().required(),
+        
+       
+
     });
     validateRequest(req, next, schema);
 }

@@ -11,7 +11,7 @@ module.exports = {
   addNewClass,
   addSubject,
 
-//   addStudentToClass
+  addStudentToClass
 
 
 
@@ -53,6 +53,44 @@ async function getAllSubject() {
 
 
 
+// async function addNewClass(params) {
+//     // Destructure the parameters
+//     const { year, semester, subjectcode } = params;
+
+//     // Validate the year
+//     const yearRecord = await db.Yearlist.findOne({
+//         where: { year: year }
+//     });
+//     if (!yearRecord) {
+//         throw new Error(`Year ${year} not found`);
+//     }
+
+//     // Validate the semester
+//     const semesterRecord = await db.Semesterlist.findOne({
+//         where: { semester: semester }
+//     });
+//     if (!semesterRecord) {
+//         throw new Error(`Semester ${semester} not found`);
+//     }
+
+//     // Validate the subject code
+//     const subjectRecord = await db.Subjectlist.findOne({
+//         where: { subjectcode: subjectcode }
+//     });
+//     if (!subjectRecord) {
+//         throw new Error(`Subject code ${subjectcode} not found`);
+//     }
+
+//     // If all validations pass, create the new class entry
+//     const addclass = await db.Classlist.create(params);
+
+//    return {
+//     message: "New class added successfully",
+//     details: addclass
+// };
+// }
+
+
 async function addNewClass(params) {
     // Destructure the parameters
     const { year, semester, subjectcode } = params;
@@ -84,11 +122,45 @@ async function addNewClass(params) {
     // If all validations pass, create the new class entry
     const addclass = await db.Classlist.create(params);
 
-   return {
-    message: "New class added successfully",
-    details: addclass
-};
+    // Prepare the terms
+    const terms = ['Prelim', 'Midterm', 'Finals'];
+
+    // Generate entries for Gradelist and Attendancescores
+    const gradelistEntries = [];
+    const attendanceEntries = [];
+
+    for (const term of terms) {
+        // Create an attendance entry
+        const attendance = await db.Attendancescores.create({
+            isReference: true,
+            classid: addclass.classid
+        });
+
+        // Create a gradelist entry linked to the attendance entry
+        const gradelist = await db.Gradelist.create({
+            studentFirstName: 'First Name',
+            studentLastName: 'Last Name',
+            studentid: 0,
+            term: term,
+            classid: addclass.classid,
+            attendanceid: attendance.attendanceid
+        });
+
+        gradelistEntries.push(gradelist);
+        attendanceEntries.push(attendance);
+    }
+
+    return {
+        message: "New class and associated grade and attendance reference entries added successfully",
+        classDetails: addclass,
+        gradelistEntries: gradelistEntries,
+        attendanceEntries: attendanceEntries
+    };
 }
+
+
+
+
 
 
 async function addSubject(params) {
@@ -98,3 +170,89 @@ async function addSubject(params) {
         details: addsubject
     };
 }
+
+
+
+
+async function addStudentToClass({ classid, studentid }) {
+    try {
+        // Validate that the student exists and has the role 'Student'
+        const student = await db.Account.findOne({
+            where: {
+                id: studentid,
+                role: 'Student'
+            }
+        });
+
+        if (!student) {
+            throw new Error(`Student with id ${studentid} not found or is not a student.`);
+        }
+
+        // Validate that the class exists
+        const classRecord = await db.Classlist.findOne({
+            where: { classid: classid }
+        });
+
+        if (!classRecord) {
+            throw new Error(`Class with id ${classid} not found.`);
+        }
+
+        // Check how many terms the student already has in this class
+        const existingEntries = await db.Gradelist.findAll({
+            where: {
+                classid: classid,
+                studentid: studentid
+            }
+        });
+
+        if (existingEntries.length >= 3) {
+            return {
+                message: "This student already has entries for all three terms (Prelim, Midterm, Finals) in this class.",
+                classDetails: classRecord,
+                existingEntries: existingEntries
+            };
+        }
+
+        // Prepare the terms that have not yet been added
+        const existingTerms = existingEntries.map(entry => entry.term);
+        const terms = ['Prelim', 'Midterm', 'Finals'].filter(term => !existingTerms.includes(term));
+
+        // Generate entries for Gradelist and Attendancescores
+        const gradelistEntries = [];
+        const attendanceEntries = [];
+
+        for (const term of terms) {
+            // Create an attendance entry
+            const attendance = await db.Attendancescores.create({
+                classid: classRecord.classid
+            });
+
+            // Create a gradelist entry linked to the attendance entry
+            const gradelist = await db.Gradelist.create({
+                studentFirstName: student.firstName, // Use student's first name
+                studentLastName: student.lastName,   // Use student's last name
+                studentid: student.id,               // Use the provided studentid
+                term: term,
+                classid: classRecord.classid,
+                attendanceid: attendance.attendanceid
+            });
+
+            gradelistEntries.push(gradelist);
+            attendanceEntries.push(attendance);
+        }
+
+        return {
+            message: "Student added to class successfully with associated grade and attendance entries.",
+            classDetails: classRecord,
+            gradelistEntries: gradelistEntries,
+            attendanceEntries: attendanceEntries
+        };
+    } catch (error) {
+        console.error("Error adding student to class:", error);
+        throw error;
+    }
+}
+
+
+
+

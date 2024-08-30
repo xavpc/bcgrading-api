@@ -41,7 +41,9 @@ async function initialize() {
 
     db.Classlist = require('../-models/classlist.model.js')(sequelize);
 
+    db.Gradelist = require('../-grades/grade.model.js')(sequelize);
 
+    db.Attendancescores = require('../-grades/attendance.model.js')(sequelize);
    
 
    
@@ -50,11 +52,19 @@ async function initialize() {
    
   
 
-    // await sequelize.sync();
 
 
-    // sync all models with database first para di mag error
-    await sequelize.sync({ alter: true });
+
+    // sync all models with database first para di mag error     // await sequelize.sync();
+    await db.Account.sync({ alter: true }); // Sync Accounts first
+    await db.Yearlist.sync({ alter: true });
+    await db.Semesterlist.sync({ alter: true });
+    await db.Subjectlist.sync({ alter: true });
+    await db.Classlist.sync({ alter: true });
+    await db.Attendancescores.sync({ alter: true }); // Sync Attendancescores before Gradelist
+    await db.Gradelist.sync({ alter: true }); // Sync Gradelist last
+
+  
 
     // Now add the relationships
     addRelationships();
@@ -78,4 +88,18 @@ function addRelationships() {
 
     db.Classlist.hasOne(db.Subjectlist, { foreignKey: 'subjectcode' });
     db.Subjectlist.belongsTo(db.Classlist, { foreignKey: 'subjectcode' });
+
+
+
+    db.Classlist.hasMany(db.Gradelist, { foreignKey: 'classid' });
+    db.Gradelist.belongsTo(db.Classlist, { foreignKey: 'classid' });
+
+    db.Classlist.hasMany(db.Attendancescores, { foreignKey: 'classid' });
+    db.Attendancescores.belongsTo(db.Classlist, { foreignKey: 'classid' });
+
+    db.Attendancescores.hasOne(db.Gradelist, { foreignKey: 'attendanceid' });
+    db.Gradelist.belongsTo(db.Attendancescores, { foreignKey: 'attendanceid' });
+
+    db.Account.hasMany(db.Gradelist, { foreignKey: 'studentid' });
+    db.Gradelist.belongsTo(db.Account, { foreignKey: 'studentid' });
 }
