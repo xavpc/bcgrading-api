@@ -9,7 +9,9 @@ module.exports = {
 
 
   addNewClass,
-  addSubject
+  addSubject,
+
+//   addStudentToClass
 
 
 
@@ -21,16 +23,16 @@ module.exports = {
 
 
 async function getAll() {
-    const [results] = await db.sequelize.query(`
+    const [allclass] = await db.sequelize.query(`
         SELECT 
             cl.classid,cl.subjectcode,cl.semester,cl.year,cl.teacherid,cl.created,cl.updated,cl.dateDeleted,cl.dateReactivated,cl.isActive,cl.isDeleted,sl.title FROM Classlists cl LEFT JOIN Subjectlists sl ON cl.subjectcode = sl.subjectcode;
     `);
 
-    // Optionally, log the results to see the output
-    // console.log(results);
+    // Optionally, log the allclass to see the output
+    // console.log(allclass);
 
     // Return the results
-    return results;
+    return allclass;
 }
 
 
