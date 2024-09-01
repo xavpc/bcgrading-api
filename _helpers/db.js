@@ -52,7 +52,7 @@ async function initialize() {
    
     db.ActivityProjectscores = require('../_scores/activityprojectyawa.model.js')(sequelize);
 
-    db.ExamScores = require('../_scores/exam.model.js')(sequelize);
+    db.Examscores = require('../_scores/exam.model.js')(sequelize);
   
 
 
@@ -68,7 +68,7 @@ async function initialize() {
     await db.Participationscores.sync({ alter: true }); // Sync Participationscores before Gradelist
     await db.Quizscores.sync({ alter: true }); // Sync Quizscores before Gradelist
     await db.ActivityProjectscores.sync({ alter: true }); // Sync ActivityProjectscores before Gradelist
-    await db.ExamScores.sync({ alter: true }); // Sync ExamScores before Gradelist
+    await db.Examscores.sync({ alter: true }); // Sync ExamScores before Gradelist
     await db.Gradelist.sync({ alter: true }); // Sync Gradelist last
 
   
@@ -123,8 +123,8 @@ function addRelationships() {
     db.ActivityProjectscores.hasOne(db.Gradelist, { foreignKey: 'activityprojectid' });
     db.Gradelist.belongsTo(db.ActivityProjectscores, { foreignKey: 'activityprojectid' });
 
-    db.ExamScores.hasOne(db.Gradelist, { foreignKey: 'examid' });
-    db.Gradelist.belongsTo(db.ExamScores, { foreignKey: 'examid' });
+    db.Examscores.hasOne(db.Gradelist, { foreignKey: 'examid' });
+    db.Gradelist.belongsTo(db.Examscores, { foreignKey: 'examid' });
 
     
 

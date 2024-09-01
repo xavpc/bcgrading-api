@@ -125,9 +125,13 @@ async function addNewClass(params) {
     // Prepare the terms
     const terms = ['Prelim', 'Midterm', 'Finals'];
 
-    // Generate entries for Gradelist and Attendancescores
+    // Generate entries for Gradelist, Attendancescores, Participationscores, Quizscores, ActivityProjectscores, and Examscores
     const gradelistEntries = [];
     const attendanceEntries = [];
+    const participationEntries = [];
+    const quizEntries = [];
+    const activityProjectEntries = [];
+    const examEntries = [];
 
     for (const term of terms) {
         // Create an attendance entry
@@ -136,27 +140,66 @@ async function addNewClass(params) {
             classid: addclass.classid
         });
 
-        // Create a gradelist entry linked to the attendance entry
+        // Create a participation entry
+        const participation = await db.Participationscores.create({
+            isReference: true,
+            classid: addclass.classid
+        });
+
+        // Create a quiz entry
+        const quiz = await db.Quizscores.create({
+            isReference: true,
+            classid: addclass.classid
+        });
+
+        // Create an activity/project entry
+        const activityProject = await db.ActivityProjectscores.create({
+            isReference: true,
+            classid: addclass.classid
+        });
+
+        // Create an exam entry
+        const exam = await db.Examscores.create({
+            isReference: true,
+            classid: addclass.classid
+        });
+
+        // Create a gradelist entry linked to all the score entries
         const gradelist = await db.Gradelist.create({
             studentFirstName: 'First Name',
             studentLastName: 'Last Name',
             studentid: 0,
             term: term,
             classid: addclass.classid,
-            attendanceid: attendance.attendanceid
+            attendanceid: attendance.attendanceid,
+            participationid: participation.participationid,
+            quizid: quiz.quizid,
+            activityprojectid: activityProject.activityprojectid,
+            examid: exam.examid
         });
 
         gradelistEntries.push(gradelist);
         attendanceEntries.push(attendance);
+        participationEntries.push(participation);
+        quizEntries.push(quiz);
+        activityProjectEntries.push(activityProject);
+        examEntries.push(exam);
     }
 
     return {
         message: "New class and associated grade and attendance reference entries added successfully",
         classDetails: addclass,
         gradelistEntries: gradelistEntries,
-        attendanceEntries: attendanceEntries
+        attendanceEntries: attendanceEntries,
+        participationEntries: participationEntries,
+        quizEntries: quizEntries,
+        activityProjectEntries: activityProjectEntries,
+        examEntries: examEntries
     };
 }
+
+
+
 
 
 
@@ -217,9 +260,13 @@ async function addStudentToClass({ classid, studentid }) {
         const existingTerms = existingEntries.map(entry => entry.term);
         const terms = ['Prelim', 'Midterm', 'Finals'].filter(term => !existingTerms.includes(term));
 
-        // Generate entries for Gradelist and Attendancescores
+        // Generate entries for Gradelist, Attendancescores, Participationscores, Quizscores, ActivityProjectscores, and Examscores
         const gradelistEntries = [];
         const attendanceEntries = [];
+        const participationEntries = [];
+        const quizEntries = [];
+        const activityProjectEntries = [];
+        const examEntries = [];
 
         for (const term of terms) {
             // Create an attendance entry
@@ -227,31 +274,66 @@ async function addStudentToClass({ classid, studentid }) {
                 classid: classRecord.classid
             });
 
-            // Create a gradelist entry linked to the attendance entry
+            // Create a participation entry
+            const participation = await db.Participationscores.create({
+                classid: classRecord.classid
+            });
+
+            // Create a quiz entry
+            const quiz = await db.Quizscores.create({
+                classid: classRecord.classid
+            });
+
+            // Create an activity/project entry
+            const activityProject = await db.ActivityProjectscores.create({
+                classid: classRecord.classid
+            });
+
+            // Create an exam entry
+            const exam = await db.Examscores.create({
+                classid: classRecord.classid
+            });
+
+            // Create a gradelist entry linked to all the score entries
             const gradelist = await db.Gradelist.create({
                 studentFirstName: student.firstName, // Use student's first name
                 studentLastName: student.lastName,   // Use student's last name
                 studentid: student.id,               // Use the provided studentid
                 term: term,
                 classid: classRecord.classid,
-                attendanceid: attendance.attendanceid
+                attendanceid: attendance.attendanceid,
+                participationid: participation.participationid,
+                quizid: quiz.quizid,
+                activityprojectid: activityProject.activityprojectid,
+                examid: exam.examid
             });
 
             gradelistEntries.push(gradelist);
             attendanceEntries.push(attendance);
+            participationEntries.push(participation);
+            quizEntries.push(quiz);
+            activityProjectEntries.push(activityProject);
+            examEntries.push(exam);
         }
 
         return {
             message: "Student added to class successfully with associated grade and attendance entries.",
             classDetails: classRecord,
             gradelistEntries: gradelistEntries,
-            attendanceEntries: attendanceEntries
+            attendanceEntries: attendanceEntries,
+            participationEntries: participationEntries,
+            quizEntries: quizEntries,
+            activityProjectEntries: activityProjectEntries,
+            examEntries: examEntries
         };
     } catch (error) {
         console.error("Error adding student to class:", error);
         throw error;
     }
 }
+
+
+
 
 
 
