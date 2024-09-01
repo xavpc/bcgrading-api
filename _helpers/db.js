@@ -19,6 +19,7 @@ async function initialize() {
     const sequelize = new Sequelize(database, user, password, { dialect: 'mysql' });
 
      // Assign Sequelize instance to the db object
+     db.Sequelize = Sequelize;
      db.sequelize = sequelize;
      
 
@@ -75,10 +76,13 @@ async function initialize() {
     // Now add the relationships
     addRelationships();
 
-    // Sync again to apply the relationships
+    // Sync again to apply the relationships kani kuhaon na ug mana ang system
     await sequelize.sync({ alter: true });
 
-    await initializeData(db); 
+
+    // await sequelize.sync(); //kani na gamiton kung mana system yaa
+
+    await initializeData(db);    //i comment out ni after doy kung mana kag npm start kausa
 
 }
 

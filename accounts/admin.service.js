@@ -60,7 +60,7 @@ function formatDate(date) {
 
 async function AdminGetAllAccounts() {
     const accounts = await db.Account.findAll({
-        where: {  isActive: true, isDeleted: false }
+        where: { id: { [db.Sequelize.Op.ne]: 0 },   isActive: true, isDeleted: false }
     });
     
     return accounts.map(account => {
@@ -77,7 +77,7 @@ async function AdminGetAllAccounts() {
 
 async function AdminGetInactiveAccounts() {
     const accounts = await db.Account.findAll({
-        where: {  isActive: false, isDeleted: true }
+        where: { id: { [db.Sequelize.Op.ne]: 0 }, isActive: false, isDeleted: true }
     });
     
     return accounts.map(account => {
