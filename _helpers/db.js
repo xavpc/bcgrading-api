@@ -97,19 +97,36 @@ function addRelationships() {
     db.Classlist.hasMany(db.Semesterlist, { foreignKey: 'semester' });
 
     db.Classlist.hasOne(db.Subjectlist, { foreignKey: 'subjectcode' });
-    db.Subjectlist.belongsTo(db.Classlist, { foreignKey: 'subjectcode' });
+    db.Subjectlist.belongsTo(db.Classlist, { foreignKey: 'subjectcode' }); 
+
+    db.Account.hasMany(db.Gradelist, { foreignKey: 'studentid' });
+    db.Gradelist.belongsTo(db.Account, { foreignKey: 'studentid' });
+    
+
+    // db.Classlist.hasMany(db.Gradelist, { foreignKey: 'classid' });
+    // db.Gradelist.belongsTo(db.Classlist, { foreignKey: 'classid' });
 
 
 
-    db.Classlist.hasMany(db.Gradelist, { foreignKey: 'classid' });
-    db.Gradelist.belongsTo(db.Classlist, { foreignKey: 'classid' });
-
-    db.Classlist.hasMany(db.Attendancescores, { foreignKey: 'classid' });
-    db.Attendancescores.belongsTo(db.Classlist, { foreignKey: 'classid' });
+    // db.Classlist.hasMany(db.Attendancescores, { foreignKey: 'classid' });
+    // db.Attendancescores.belongsTo(db.Classlist, { foreignKey: 'classid' });
 
     db.Attendancescores.hasOne(db.Gradelist, { foreignKey: 'attendanceid' });
     db.Gradelist.belongsTo(db.Attendancescores, { foreignKey: 'attendanceid' });
 
-    db.Account.hasMany(db.Gradelist, { foreignKey: 'studentid' });
-    db.Gradelist.belongsTo(db.Account, { foreignKey: 'studentid' });
+    db.Participationscores.hasOne(db.Gradelist, { foreignKey: 'participationid' });
+    db.Gradelist.belongsTo(db.Participationscores, { foreignKey: 'participationid' });
+
+    db.Quizscores.hasOne(db.Gradelist, { foreignKey: 'quizid' });
+    db.Gradelist.belongsTo(db.Quizscores, { foreignKey: 'quizid' });
+
+    db.ActivityProjectscores.hasOne(db.Gradelist, { foreignKey: 'activityprojectid' });
+    db.Gradelist.belongsTo(db.ActivityProjectscores, { foreignKey: 'activityprojectid' });
+
+    db.ExamScores.hasOne(db.Gradelist, { foreignKey: 'examid' });
+    db.Gradelist.belongsTo(db.ExamScores, { foreignKey: 'examid' });
+
+    
+
+
 }

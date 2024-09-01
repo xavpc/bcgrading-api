@@ -31,6 +31,39 @@ function model(sequelize) {
                 key: 'attendanceid'
             }
         },
+
+        participationid: {type: DataTypes.INTEGER, allowNull:true,
+
+            references:{
+                model: 'participationscores',
+                key: 'participationid'
+            }
+        },
+
+        quizid: {type: DataTypes.INTEGER, allowNull:true,
+
+            references:{
+                model: 'quizscores',
+                key: 'quizid'
+            }
+        },
+
+        activityprojectid: {type: DataTypes.INTEGER, allowNull:true,
+
+            references:{
+                model: 'activityprojectscores',
+                key: 'activityprojectid'
+            }
+        },
+
+        examid: {type: DataTypes.INTEGER, allowNull:true,
+
+            references:{
+                model: 'examscores',
+                key: 'examid'
+            }
+        },
+
         created: { type: DataTypes.DATE, allowNull: false, defaultValue: DataTypes.NOW },
         updated: { type: DataTypes.DATE},
     
