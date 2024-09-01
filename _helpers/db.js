@@ -43,13 +43,15 @@ async function initialize() {
 
     db.Gradelist = require('../-grades/grade.model.js')(sequelize);
 
-    db.Attendancescores = require('../-grades/attendance.model.js')(sequelize);
-   
+    db.Attendancescores = require('../_scores/attendance.model.js')(sequelize);
 
+    db.Participationscores = require('../_scores/participation.model.js')(sequelize);
    
-
-
+    db.Quizscores = require('../_scores/quiz.model.js')(sequelize);
    
+    db.ActivityProjectscores = require('../_scores/activityprojectyawa.model.js')(sequelize);
+
+    db.ExamScores = require('../_scores/exam.model.js')(sequelize);
   
 
 
@@ -62,6 +64,10 @@ async function initialize() {
     await db.Subjectlist.sync({ alter: true });
     await db.Classlist.sync({ alter: true });
     await db.Attendancescores.sync({ alter: true }); // Sync Attendancescores before Gradelist
+    await db.Participationscores.sync({ alter: true }); // Sync Participationscores before Gradelist
+    await db.Quizscores.sync({ alter: true }); // Sync Quizscores before Gradelist
+    await db.ActivityProjectscores.sync({ alter: true }); // Sync ActivityProjectscores before Gradelist
+    await db.ExamScores.sync({ alter: true }); // Sync ExamScores before Gradelist
     await db.Gradelist.sync({ alter: true }); // Sync Gradelist last
 
   

@@ -18,6 +18,8 @@ router.post('/addclass', newclassSchema,addnewclass);
 router.post('/addsubject', authorize(Role.Registrar), newsubjectSchema,addSubject);
 router.post('/addstudentToclass', addStudentToClassSchema,addStudentToClass);
 
+router.get('/:classid',  getClassGradesAndAttendance);
+
 module.exports = router;
 
 function getAll(req, res, next) {
@@ -108,4 +110,14 @@ function addStudentToClassSchema(req, res, next) {
 
     });
     validateRequest(req, next, schema);
+}
+
+
+
+function getClassGradesAndAttendance(req, res, next) {
+   
+
+    Service.getClassGradesAndAttendance(req.params.classid)
+        .then(grades => grades ? res.json(grades) : res.sendStatus(404))
+        .catch(next);
 }

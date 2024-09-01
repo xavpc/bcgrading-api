@@ -11,10 +11,10 @@ module.exports = {
   addNewClass,
   addSubject,
 
-  addStudentToClass
+  addStudentToClass,
 
 
-
+  getClassGradesAndAttendance
 
 
 
@@ -256,3 +256,41 @@ async function addStudentToClass({ classid, studentid }) {
 
 
 
+async function getClassGradesAndAttendance(classid) {
+    try {
+        // Validate that the class exists
+        const classRecord = await db.Classlist.findOne({
+            where: { classid: classid }
+        });
+
+        if (!classRecord) {
+            throw new Error(`Class with id ${classid} not found.`);
+        }
+
+        // Get all Gradelist entries for the class
+        const gradelistEntries = await db.Gradelist.findAll({
+            where: { classid: classid },
+            include: [{
+                model: db.Attendancescores,
+                as: 'AttendanceScore', // Assuming you've set up associations with alias
+                required: false // Set to false to allow Gradelist entries without Attendancescores
+            }]
+        });
+
+        if (gradelistEntries.length === 0) {
+            return {
+                message: "No grade data found for this class.",
+                classDetails: classRecord
+            };
+        }
+
+        return {
+            message: "Grade and attendance data retrieved successfully.",
+            classDetails: classRecord,
+            gradelistEntries: gradelistEntries
+        };
+    } catch (error) {
+        console.error("Error retrieving class grades and attendance:", error);
+        throw error;
+    }
+}

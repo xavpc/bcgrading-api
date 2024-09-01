@@ -46,8 +46,8 @@ function model(sequelize) {
         attendance_28:{ type: DataTypes.INTEGER, allowNull: false, defaultValue: 0 },
         attendance_29:{ type: DataTypes.INTEGER, allowNull: false, defaultValue: 0 },
         attendance_30:{ type: DataTypes.INTEGER, allowNull: false, defaultValue: 0 },
-        a_total: { type: DataTypes.INTEGER,allowNull: true, defaultValue: 0 },
-        a_percentage:  { type: DataTypes.DOUBLE,allowNull: true, defaultValue: 0 },
+        attendance_total: { type: DataTypes.INTEGER,allowNull: true, defaultValue: 0 },
+        attendance_percentage:  { type: DataTypes.DOUBLE,allowNull: true, defaultValue: 0 },
         created: { type: DataTypes.DATE, allowNull: false, defaultValue: DataTypes.NOW },
         updated: { type: DataTypes.DATE}
     }; 
