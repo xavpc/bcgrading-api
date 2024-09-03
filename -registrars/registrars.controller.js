@@ -8,11 +8,11 @@ const Service = require('./registrar.service');
 
 
 
-router.get('/',  getAll);
+router.get('/', authorize([Role.Admin, Role.Registrar]), getAll);
 router.get('/years',  authorize([Role.Admin, Role.Registrar]), getAllYear);
 router.get('/semesters' ,authorize([Role.Admin, Role.Registrar]), getAllSemester);
 router.get('/subjects', authorize([Role.Admin, Role.Registrar]), getAllSubject);
-
+router.get('/teacherlist',authorize([Role.Admin, Role.Registrar]),  getAllTeacher);
 
 router.post('/addclass', newclassSchema,addnewclass);
 router.post('/addsubject', authorize(Role.Registrar), newsubjectSchema,addSubject);
@@ -45,7 +45,11 @@ function getAllSubject(req, res, next) {
         .catch(next);
 }
 
-
+function getAllTeacher(req, res, next) {
+    Service.getAllTeacher()
+        .then(teachers => res.json(teachers))
+        .catch(next);
+}
 
 
 function addnewclass(req, res, next) {
