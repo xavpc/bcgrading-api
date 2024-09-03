@@ -14,7 +14,7 @@ module.exports = {
   addStudentToClass,
 
 
-  getClassGradesAndAttendance,
+  getClassGradesAndScores,
 
   getAllTeacher
 
@@ -307,7 +307,7 @@ async function addStudentToClass({ classid, studentid }) {
 
 
 
-async function getClassGradesAndAttendance(classid) {
+async function getClassGradesAndScores(classid) {
     try {
         // Validate that the class exists
         const classRecord = await db.Classlist.findOne({
@@ -325,7 +325,28 @@ async function getClassGradesAndAttendance(classid) {
                 model: db.Attendancescores,
                 as: 'AttendanceScore', // Assuming you've set up associations with alias
                 required: false // Set to false to allow Gradelist entries without Attendancescores
-            }]
+            },
+            {
+                model: db.Participationscores,
+                as: 'ParticipationScore', // Assuming you've set up associations with alias
+                required: false 
+            },
+            {
+                model: db.Quizscores,
+                as: 'QuizScore', // Assuming you've set up associations with alias
+                required: false 
+            },
+            {
+                model: db.ActivityProjectscores,
+                as: 'ActivityProjectScore', // Assuming you've set up associations with alias
+                required: false 
+            },
+            {
+                model: db.Examscores,
+                as: 'ExamScore', // Assuming you've set up associations with alias
+                required: false 
+            },
+        ]
         });
 
         if (gradelistEntries.length === 0) {
@@ -336,12 +357,15 @@ async function getClassGradesAndAttendance(classid) {
         }
 
         return {
-            message: "Grade and attendance data retrieved successfully.",
+            // message: "Grade and score data retrieved successfully.",
             classDetails: classRecord,
             gradelistEntries: gradelistEntries
         };
     } catch (error) {
-        console.error("Error retrieving class grades and attendance:", error);
+        console.error("Error retrieving class grades and scores:", error);
         throw error;
     }
 }
+
+
+
