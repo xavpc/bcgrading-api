@@ -18,8 +18,9 @@ router.post('/addclass', newclassSchema,addnewclass);
 router.post('/addsubject', authorize(Role.Registrar), newsubjectSchema,addSubject);
 router.post('/addstudentToclass', addStudentToClassSchema,addStudentToClass);
 
-router.get('/:classid',  getClassGradesAndScores);
+router.get('/:classid/:term',  getClassGradesAndScores);
 
+    router.get('/:classid',  getClassGrades);
 module.exports = router;
 
 function getAll(req, res, next) {
@@ -121,7 +122,19 @@ function addStudentToClassSchema(req, res, next) {
 function getClassGradesAndScores(req, res, next) {
    
 
-    Service.getClassGradesAndScores(req.params.classid)
+    Service.getClassGradesAndScores(req.params.classid , req.params.term)
         .then(grades => grades ? res.json(grades) : res.sendStatus(404))
         .catch(next);
 }
+
+
+
+
+function getClassGrades(req, res, next) {
+   
+
+    Service.getClassGrades(req.params.classid)
+        .then(grades => grades ? res.json(grades) : res.sendStatus(404))
+        .catch(next);
+}
+

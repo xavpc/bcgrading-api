@@ -16,8 +16,9 @@ module.exports = {
 
   getClassGradesAndScores,
 
-  getAllTeacher
-
+  getAllTeacher,
+ 
+  getClassGrades
 
 };
 
@@ -307,7 +308,7 @@ async function addStudentToClass({ classid, studentid }) {
 
 
 
-async function getClassGradesAndScores(classid) {
+async function getClassGradesAndScores(classid , term) {
     try {
         // Validate that the class exists
         const classRecord = await db.Classlist.findOne({
@@ -320,7 +321,7 @@ async function getClassGradesAndScores(classid) {
 
         // Get all Gradelist entries for the class
         const gradelistEntries = await db.Gradelist.findAll({
-            where: { classid: classid },
+            where: { classid: classid , term: term },
             include: [{
                 model: db.Attendancescores,
                 as: 'AttendanceScore', // Assuming you've set up associations with alias
@@ -367,5 +368,29 @@ async function getClassGradesAndScores(classid) {
     }
 }
 
+
+
+
+async function getClassGrades(classid) {
+    try {
+        // Validate that the class exists
+        const classRecord = await db.Classlist.findOne({
+            where: { classid: classid }
+        });
+
+        if (!classRecord) {
+            throw new Error(`Class with id ${classid} not found.`);
+        }
+
+
+        return {
+            // message: "Grade and score data retrieved successfully.",
+            classDetails: classRecord,
+        };
+    } catch (error) {
+        console.error("Error retrieving class grades and scores:", error);
+        throw error;
+    }
+}
 
 
