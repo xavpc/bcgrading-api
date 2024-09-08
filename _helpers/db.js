@@ -59,18 +59,17 @@ async function initialize() {
 
 
     // sync all models with database first para di mag error     // await sequelize.sync();
-    await db.Account.sync({ alter: true }); // Sync Accounts first
+    await db.Account.sync({ alter: true }); 
     await db.Yearlist.sync({ alter: true });
     await db.Semesterlist.sync({ alter: true });
     await db.Subjectlist.sync({ alter: true });
     await db.Classlist.sync({ alter: true });
-    await db.Attendancescores.sync({ alter: true }); // Sync Attendancescores before Gradelist
-    await db.Participationscores.sync({ alter: true }); // Sync Participationscores before Gradelist
-    await db.Quizscores.sync({ alter: true }); // Sync Quizscores before Gradelist
-    await db.ActivityProjectscores.sync({ alter: true }); // Sync ActivityProjectscores before Gradelist
-    await db.Examscores.sync({ alter: true }); // Sync ExamScores before Gradelist
-    await db.Gradelist.sync({ alter: true }); // Sync Gradelist last
-
+    await db.Attendancescores.sync({ alter: true }); 
+    await db.Participationscores.sync({ alter: true }); 
+    await db.Quizscores.sync({ alter: true }); 
+    await db.ActivityProjectscores.sync({ alter: true }); 
+    await db.Examscores.sync({ alter: true }); 
+    await db.Gradelist.sync({ alter: true }); 
   
 
     // Now add the relationships
@@ -82,13 +81,18 @@ async function initialize() {
 
     // await sequelize.sync(); //kani na gamiton kung mana system yaa
 
-    await initializeData(db);    //i comment out ni after doy kung mana kag npm start kausa
+    // await initializeData(db);    //i comment out ni after doy kung mana kag npm start kausa
 
 }
 
 
  //db relationships
 function addRelationships() {
+
+    //big changes SavePoint September 8, 2024
+
+
+
     // Define relationships between models
     db.Yearlist.belongsTo(db.Classlist, { foreignKey: 'year' });
     db.Classlist.hasMany(db.Yearlist, { foreignKey: 'year' });
