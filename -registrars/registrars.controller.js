@@ -9,18 +9,27 @@ const Service = require('./registrar.service');
 
 
 router.get('/', authorize([Role.Admin, Role.Registrar]), getAll);
-router.get('/years',  authorize([Role.Admin, Role.Registrar]), getAllYear);
-router.get('/semesters' ,authorize([Role.Admin, Role.Registrar]), getAllSemester);
-router.get('/subjects', authorize([Role.Admin, Role.Registrar]), getAllSubject);
+router.get('/years',  authorize([Role.Admin, Role.Registrar, Role.Teacher]), getAllYear);
+router.get('/semesters' ,authorize([Role.Admin, Role.Registrar, Role.Teacher]), getAllSemester);
+router.get('/subjects', authorize([Role.Admin, Role.Registrar , Role.Teacher]), getAllSubject);
 router.get('/teacherlist',authorize([Role.Admin, Role.Registrar]),  getAllTeacher);
+router.post('/addsubject', authorize(Role.Registrar), newsubjectSchema,addSubject);
+
 
 router.post('/addclass', newclassSchema,addnewclass);
-router.post('/addsubject', authorize(Role.Registrar), newsubjectSchema,addSubject);
+router.get('/studentlist/:classid', getStudentsInClass);
+router.get('/studentnotinclass/:classid', getAllStudentsNotInClass);
+router.get('/classinfo/:classid',authorize([Role.Admin, Role.Registrar , Role.Teacher]), getByID);
+
 router.post('/addstudentToclass', addStudentToClassSchema,addStudentToClass);
 
-router.get('/:classid/:term',  getClassGradesAndScores);
 
-    router.get('/:classid',  getClassGrades);
+
+
+
+
+
+
 module.exports = router;
 
 function getAll(req, res, next) {
@@ -53,11 +62,24 @@ function getAllTeacher(req, res, next) {
 }
 
 
+function getByID(req, res, next) {
+    Service.getByID(req.params.classid)
+        .then(classes => res.json(classes))
+        .catch(next);
+}
+
+function getAllStudentsNotInClass(req, res, next) {
+    Service.getAllStudentsNotInClass(req.params.classid)
+        .then(classes => res.json(classes))
+        .catch(next);
+}
+
+
 function addnewclass(req, res, next) {
     Service.addNewClass(req.body)
         .then(result => res.json({
             message: result.message,
-            class: result.class
+            classDetails: result.classDetails  
         }))
         .catch(next);
 }
@@ -99,7 +121,7 @@ function addStudentToClass(req, res, next) {
     Service.addStudentToClass(req.body)
         .then(result => res.json({
             message: result.message,
-            class: result.class
+            StudentAddedToClassDetails: result.StudentAddedToClassDetails  
         }))
         .catch(next);
 }
@@ -117,24 +139,13 @@ function addStudentToClassSchema(req, res, next) {
     validateRequest(req, next, schema);
 }
 
-
-
-function getClassGradesAndScores(req, res, next) {
-   
-
-    Service.getClassGradesAndScores(req.params.classid , req.params.term)
-        .then(grades => grades ? res.json(grades) : res.sendStatus(404))
-        .catch(next);
-}
-
-
-
-
-function getClassGrades(req, res, next) {
-   
-
-    Service.getClassGrades(req.params.classid)
-        .then(grades => grades ? res.json(grades) : res.sendStatus(404))
+function getStudentsInClass(req, res, next) {
+    // Directly use req.params.classid without destructuring
+    Service.getStudentsInClass(req.params.classid)
+        .then(result => res.json({
+            message: result.message,
+            students: result.students
+        }))
         .catch(next);
 }
 

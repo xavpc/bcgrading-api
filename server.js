@@ -17,7 +17,7 @@ app.use(cors({ origin: (origin, callback) => callback(null, true), credentials: 
 app.use('/accounts', require('./accounts/accounts.controller'));
 app.use('/admin', require('./accounts/admins.controller'));
 app.use('/registrar', require('./-registrars/registrars.controller'));
-
+app.use('/teacher', require('./-teachers/teachers.controller'));
 
 // global error handler
 app.use(errorHandler);

@@ -32,7 +32,12 @@ function model(sequelize) {
             }
         },
 
-        teacherid: {type: DataTypes.INTEGER, allowNull: true}, // will add teacher id relationship to accounts model 
+        teacherid: {type: DataTypes.INTEGER, allowNull: true,
+            references: {
+                model: 'accounts', 
+                key: 'id' 
+            }
+        }, 
 
         created: { type: DataTypes.DATE, allowNull: true, defaultValue: DataTypes.NOW },
         updated: { type: DataTypes.DATE},

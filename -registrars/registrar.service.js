@@ -1,41 +1,60 @@
 const db = require('_helpers/db');
-
+const { Op } = require('sequelize');
 module.exports = {
 
   getAll,
   getAllYear,
   getAllSemester,
   getAllSubject,
-
+  getAllTeacher,
+ 
 
   addNewClass,
   addSubject,
 
   addStudentToClass,
 
+  getStudentsInClass,
+  getByID,
+  getAllStudentsNotInClass
 
-  getClassGradesAndScores,
 
-  getAllTeacher,
- 
-  getClassGrades
+
 
 };
 
 
+// async function getAll() {
+//     const [allclass] = await db.sequelize.query(`
+//         SELECT 
+//             cl.classid,cl.subjectcode,cl.semester,cl.year,cl.teacherid,cl.created,cl.updated,cl.dateDeleted,cl.dateReactivated,cl.isActive,cl.isDeleted,sl.title FROM Classlists cl LEFT JOIN Subjectlists sl ON cl.subjectcode = sl.subjectcode;
+//     `);
+
+//     // Optionally, log the allclass to see the output
+//     // console.log(allclass);
+
+//     // Return the results
+//     return allclass;
+// }
 async function getAll() {
-    const [allclass] = await db.sequelize.query(`
-        SELECT 
-            cl.classid,cl.subjectcode,cl.semester,cl.year,cl.teacherid,cl.created,cl.updated,cl.dateDeleted,cl.dateReactivated,cl.isActive,cl.isDeleted,sl.title FROM Classlists cl LEFT JOIN Subjectlists sl ON cl.subjectcode = sl.subjectcode;
-    `);
+    return await db.Classlist.findAll({
+        include: [{
+            model: db.Subjectlist,
+            as: 'Subjectitle',
+            attributes: ['title'] 
+        },
+        {
+            model: db.Account,
+            as: 'TeacherInfo', 
+            attributes: ['id', 'firstName', 'lastName']
+        }]
+    });
+  }
 
-    // Optionally, log the allclass to see the output
-    // console.log(allclass);
-
-    // Return the results
-    return allclass;
-}
-
+  async function getAllStudent() {
+    return await db.Account.findAll({
+    });
+  }
 
 async function getAllYear() {
     return await db.Yearlist.findAll();   
@@ -53,11 +72,26 @@ async function getAllSubject() {
 async function getAllTeacher() {
     return await db.Account.findAll({
         where: { role: 'Teacher' },
+        as: 'TeacherInfo', 
         attributes: ['id', 'firstName', 'lastName']
     });
 }
 
-
+async function getByID(classid) {
+    return await db.Classlist.findOne({
+        where: { classid: classid },
+        include: [{
+            model: db.Subjectlist,
+            as: 'Subjectitle',
+            attributes: ['title'] 
+        },
+        {
+            model: db.Account,
+            as: 'TeacherInfo', 
+            attributes: ['id', 'firstName', 'lastName']
+        }]
+    });
+  }
 
 
 
@@ -92,79 +126,10 @@ async function addNewClass(params) {
     // If all validations pass, create the new class entry
     const addclass = await db.Classlist.create(params);
 
-    // Prepare the terms
-    const terms = ['Prelim', 'Midterm', 'Finals'];
 
-    // Generate entries for Gradelist, Attendancescores, Participationscores, Quizscores, ActivityProjectscores, and Examscores
-    const gradelistEntries = [];
-    const attendanceEntries = [];
-    const participationEntries = [];
-    const quizEntries = [];
-    const activityProjectEntries = [];
-    const examEntries = [];
-
-    for (const term of terms) {
-        // Create an attendance entry
-        const attendance = await db.Attendancescores.create({
-            isReference: true,
-            classid: addclass.classid
-        });
-
-        // Create a participation entry
-        const participation = await db.Participationscores.create({
-            isReference: true,
-            classid: addclass.classid
-        });
-
-        // Create a quiz entry
-        const quiz = await db.Quizscores.create({
-            isReference: true,
-            classid: addclass.classid
-        });
-
-        // Create an activity/project entry
-        const activityProject = await db.ActivityProjectscores.create({
-            isReference: true,
-            classid: addclass.classid
-        });
-
-        // Create an exam entry
-        const exam = await db.Examscores.create({
-            isReference: true,
-            classid: addclass.classid
-        });
-
-        // Create a gradelist entry linked to all the score entries
-        const gradelist = await db.Gradelist.create({
-            studentFirstName: 'First Name',
-            studentLastName: 'Last Name',
-            studentid: 0,
-            term: term,
-            classid: addclass.classid,
-            attendanceid: attendance.attendanceid,
-            participationid: participation.participationid,
-            quizid: quiz.quizid,
-            activityprojectid: activityProject.activityprojectid,
-            examid: exam.examid
-        });
-
-        gradelistEntries.push(gradelist);
-        attendanceEntries.push(attendance);
-        participationEntries.push(participation);
-        quizEntries.push(quiz);
-        activityProjectEntries.push(activityProject);
-        examEntries.push(exam);
-    }
-
-    return {
-        message: "New class and associated grade and attendance reference entries added successfully",
+    return {    
         classDetails: addclass,
-        gradelistEntries: gradelistEntries,
-        attendanceEntries: attendanceEntries,
-        participationEntries: participationEntries,
-        quizEntries: quizEntries,
-        activityProjectEntries: activityProjectEntries,
-        examEntries: examEntries
+
     };
 }
 
@@ -187,21 +152,168 @@ async function addSubject(params) {
 
 
 
-async function addStudentToClass({ classid, studentid }) {
-    try {
-        // Validate that the student exists and has the role 'Student'
-        const student = await db.Account.findOne({
-            where: {
-                id: studentid,
-                role: 'Student'
-            }
-        });
+// async function addStudentToClass(params) {
+//     const { studentid, classid } = params;
 
-        if (!student) {
-            throw new Error(`Student with id ${studentid} not found or is not a student.`);
+//     // try {
+//         // Validate that the student exists and has the role 'Student'
+//         const student = await db.Account.findOne({
+//             where: {
+//                 id: studentid,
+//                 role: 'Student'
+//             }
+//         });
+
+//         if (!student) {
+//             throw new Error(`Student with studentid ${studentid} not found or is not a student.`);
+//         }
+
+//         // Validate that the class exists
+//         const classRecord = await db.Classlist.findOne({
+//             where: { classid: classid }
+//         });
+
+//         if (!classRecord) {
+//             throw new Error(`Class with id ${classid} not found.`);
+//         }
+
+//         // Check if the student is already in the class
+//         const existingEntry = await db.Studentlist.findOne({
+//             where: {
+//                 studentid: studentid,
+//                 classid: classid
+//             }
+//         });
+
+//         if (existingEntry) {
+//             return {
+//                 message: `Student with id ${studentid} is already enrolled in class with id ${classid}.`,
+//                 classDetails: existingEntry.get(),  // Return plain object for existing entry
+//             };
+//         }
+
+//         // Create a new student entry in the class
+//         const addstudent = await db.Studentlist.create(params);
+
+//         return {    
+//             StudentAddedToClassDetails: addstudent  // Return the plain object (dataValues)
+//         };
+
+
+// }
+
+
+
+
+async function addStudentToClass(params) {
+    const { studentid, classid } = params;
+
+    // Validate that the student exists and has the role 'Student'
+    const student = await db.Account.findOne({
+        where: {
+            id: studentid,
+            role: 'Student'
         }
+    });
 
-        // Validate that the class exists
+    if (!student) {
+        throw new Error(`Student with studentid ${studentid} not found or is not a student.`);
+    }
+
+    // Validate that the class exists
+    const classRecord = await db.Classlist.findOne({
+        where: { classid: classid }
+    });
+
+    if (!classRecord) {
+        throw new Error(`Class with id ${classid} not found.`);
+    }
+
+    // Check if the student is already in the class
+    const existingEntry = await db.Studentlist.findOne({
+        where: {
+            studentid: studentid,
+            classid: classid
+        }
+    });
+
+    if (existingEntry) {
+        return {
+            message: `Student with id ${studentid} is already enrolled in class with id ${classid}.`,
+            classDetails: existingEntry.get(),  // Return plain object for existing entry
+        };
+    }
+
+    // Create a new student entry in the class
+    const addstudent = await db.Studentlist.create(params);
+
+    // Find all existing Gradelist entries for the class
+    const existingGrades = await db.Gradelist.findAll({
+        where: { classid: classid }
+    });
+
+    // Create Scorelist entries for the newly added student for each Gradelist entry
+    const scorelistEntries = [];
+    for (const grade of existingGrades) {
+        const scoreEntry = await db.Scorelist.create({
+            gradeid: grade.gradeid,          // Reference the existing grade entry
+            studentgradeid: addstudent.studentgradeid, // Reference the newly added student
+            term: grade.term,                // Copy term from the grade
+            scoretype: grade.scoretype,      // Copy scoretype from the grade
+            score: 0,                        // Initialize score as 0 (can be updated later)
+            perfectscore: grade.perfectscore // Copy perfectscore from the grade
+        });
+        scorelistEntries.push(scoreEntry);  // Store the entry for response
+    }
+
+    return {
+        message: "Student added to class successfully with associated score entries.",
+        StudentAddedToClassDetails: addstudent, // Return student details
+        ScoreEntries: scorelistEntries          // Return newly created scorelist entries
+    };
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+async function getStudentsInClass(classid) {
+    try {
         const classRecord = await db.Classlist.findOne({
             where: { classid: classid }
         });
@@ -210,95 +322,31 @@ async function addStudentToClass({ classid, studentid }) {
             throw new Error(`Class with id ${classid} not found.`);
         }
 
-        // Check how many terms the student already has in this class
-        const existingEntries = await db.Gradelist.findAll({
-            where: {
-                classid: classid,
-                studentid: studentid
-            }
+        const students = await db.Studentlist.findAll({
+            where: { classid: classid },
+            include: [
+                {
+                    model: db.Account, // Assuming the Studentlist has a relation to Account for student details
+                    as: 'studentinfo', // Alias for Account model
+                    attributes: ['firstName', 'lastName', 'id'] // Specify fields to include
+                }
+            ]
         });
 
-        if (existingEntries.length >= 3) {
+        if (students.length === 0) {
             return {
-                message: "This student already has entries for all three terms (Prelim, Midterm, Finals) in this class.",
-                classDetails: classRecord,
-                existingEntries: existingEntries
+                message: `No students found for class with id ${classid}.`
             };
         }
 
-        // Prepare the terms that have not yet been added
-        const existingTerms = existingEntries.map(entry => entry.term);
-        const terms = ['Prelim', 'Midterm', 'Finals'].filter(term => !existingTerms.includes(term));
-
-        // Generate entries for Gradelist, Attendancescores, Participationscores, Quizscores, ActivityProjectscores, and Examscores
-        const gradelistEntries = [];
-        const attendanceEntries = [];
-        const participationEntries = [];
-        const quizEntries = [];
-        const activityProjectEntries = [];
-        const examEntries = [];
-
-        for (const term of terms) {
-            // Create an attendance entry
-            const attendance = await db.Attendancescores.create({
-                classid: classRecord.classid
-            });
-
-            // Create a participation entry
-            const participation = await db.Participationscores.create({
-                classid: classRecord.classid
-            });
-
-            // Create a quiz entry
-            const quiz = await db.Quizscores.create({
-                classid: classRecord.classid
-            });
-
-            // Create an activity/project entry
-            const activityProject = await db.ActivityProjectscores.create({
-                classid: classRecord.classid
-            });
-
-            // Create an exam entry
-            const exam = await db.Examscores.create({
-                classid: classRecord.classid
-            });
-
-            // Create a gradelist entry linked to all the score entries
-            const gradelist = await db.Gradelist.create({
-                studentFirstName: student.firstName, // Use student's first name
-                studentLastName: student.lastName,   // Use student's last name
-                studentid: student.id,               // Use the provided studentid
-                term: term,
-                classid: classRecord.classid,
-                attendanceid: attendance.attendanceid,
-                participationid: participation.participationid,
-                quizid: quiz.quizid,
-                activityprojectid: activityProject.activityprojectid,
-                examid: exam.examid
-            });
-
-            gradelistEntries.push(gradelist);
-            attendanceEntries.push(attendance);
-            participationEntries.push(participation);
-            quizEntries.push(quiz);
-            activityProjectEntries.push(activityProject);
-            examEntries.push(exam);
-        }
-
         return {
-            message: "Student added to class successfully with associated grade and attendance entries.",
-            classDetails: classRecord,
-            gradelistEntries: gradelistEntries,
-            attendanceEntries: attendanceEntries,
-            participationEntries: participationEntries,
-            quizEntries: quizEntries,
-            activityProjectEntries: activityProjectEntries,
-            examEntries: examEntries
+            message: `Students retrieved successfully for class with id ${classid}.`,
+            students: students.map(student => student.get({ plain: true }))
         };
+
     } catch (error) {
-        console.error("Error adding student to class:", error);
-        throw error;
+        console.error('Error retrieving students for class:', error);
+        throw new Error('Failed to retrieve students for class.');
     }
 }
 
@@ -306,91 +354,34 @@ async function addStudentToClass({ classid, studentid }) {
 
 
 
-
-
-async function getClassGradesAndScores(classid , term) {
+async function getAllStudentsNotInClass(classid) {
     try {
-        // Validate that the class exists
-        const classRecord = await db.Classlist.findOne({
-            where: { classid: classid }
+        // Fetch all student IDs that are in the specified class (classid) in Studentlist
+        const studentsInClass = await db.Studentlist.findAll({
+            attributes: ['studentid'], // Only get studentid
+            where: {
+                classid: classid // Only include the students in the specific class
+            },
+            raw: true // Return raw data, so you only get the studentid
         });
 
-        if (!classRecord) {
-            throw new Error(`Class with id ${classid} not found.`);
-        }
+        // Extract just the student IDs
+        const studentIdsInClass = studentsInClass.map(record => record.studentid);
 
-        // Get all Gradelist entries for the class
-        const gradelistEntries = await db.Gradelist.findAll({
-            where: { classid: classid , term: term },
-            include: [{
-                model: db.Attendancescores,
-                as: 'AttendanceScore', // Assuming you've set up associations with alias
-                required: false // Set to false to allow Gradelist entries without Attendancescores
+        // Fetch all student accounts where role is "Student" and studentid is not in the specified classid
+        const studentsNotInClass = await db.Account.findAll({
+            where: {
+                role: 'Student', // Only students with role "Student"
+                id: { 
+                    [Op.notIn]: studentIdsInClass // Exclude student IDs that are in the class
+                }
             },
-            {
-                model: db.Participationscores,
-                as: 'ParticipationScore', // Assuming you've set up associations with alias
-                required: false 
-            },
-            {
-                model: db.Quizscores,
-                as: 'QuizScore', // Assuming you've set up associations with alias
-                required: false 
-            },
-            {
-                model: db.ActivityProjectscores,
-                as: 'ActivityProjectScore', // Assuming you've set up associations with alias
-                required: false 
-            },
-            {
-                model: db.Examscores,
-                as: 'ExamScore', // Assuming you've set up associations with alias
-                required: false 
-            },
-        ]
+            attributes: ['id', 'firstName', 'lastName'] // Adjust the attributes as needed
         });
 
-        if (gradelistEntries.length === 0) {
-            return {
-                message: "No grade data found for this class.",
-                classDetails: classRecord
-            };
-        }
-
-        return {
-            // message: "Grade and score data retrieved successfully.",
-            classDetails: classRecord,
-            gradelistEntries: gradelistEntries
-        };
+        return studentsNotInClass;
     } catch (error) {
-        console.error("Error retrieving class grades and scores:", error);
+        console.error('Error fetching students:', error);
         throw error;
     }
 }
-
-
-
-
-async function getClassGrades(classid) {
-    try {
-        // Validate that the class exists
-        const classRecord = await db.Classlist.findOne({
-            where: { classid: classid }
-        });
-
-        if (!classRecord) {
-            throw new Error(`Class with id ${classid} not found.`);
-        }
-
-
-        return {
-            // message: "Grade and score data retrieved successfully.",
-            classDetails: classRecord,
-        };
-    } catch (error) {
-        console.error("Error retrieving class grades and scores:", error);
-        throw error;
-    }
-}
-
-

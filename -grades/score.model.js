@@ -4,15 +4,22 @@ module.exports = model;
 
 function model(sequelize) {
     const attributes = {
-        gradeid: {
+        scoreid: {
             type: DataTypes.INTEGER, allowNull: false, autoIncrement: true,primaryKey: true},
-            classid:{type: DataTypes.INTEGER, allowNull: false, 
-            
+            gradeid:{
+                type: DataTypes.INTEGER, allowNull: false,
                 references: {
-                    model: 'classlists', 
-                    key: 'classid' 
+                    model: 'gradelists', 
+                    key: 'gradeid' 
                 }
-            },  
+            },
+
+        studentgradeid: {type: DataTypes.INTEGER, allowNull: false,
+            references: {
+                model: 'studentlists', 
+                key: 'studentgradeid' 
+            }
+        },
 
         term:{type: DataTypes.STRING, allowNull: true, },
         scoretype:{type: DataTypes.STRING, allowNull: true, },
@@ -21,7 +28,7 @@ function model(sequelize) {
    
 
         created: { type: DataTypes.DATE, allowNull: false, defaultValue: DataTypes.NOW },
-        updated: { type: DataTypes.DATE,allowNull: true,},
+        updated: { type: DataTypes.DATE},
     
         
   
@@ -32,6 +39,6 @@ function model(sequelize) {
         
         timestamps: false
     };
-    return sequelize.define('Gradelist', attributes, options); 
+    return sequelize.define('Scorelist', attributes, options); 
 }
 

@@ -42,21 +42,11 @@ async function initialize() {
 
     db.Classlist = require('../-models/classlist.model.js')(sequelize);
 
+    db.Studentlist = require('../-grades/student.model.js')(sequelize);
+
     db.Gradelist = require('../-grades/grade.model.js')(sequelize);
 
-    db.Attendancescores = require('../_scores/attendance.model.js')(sequelize);
-
-    db.Participationscores = require('../_scores/participation.model.js')(sequelize);
-   
-    db.Quizscores = require('../_scores/quiz.model.js')(sequelize);
-   
-    db.ActivityProjectscores = require('../_scores/activityprojectyawa.model.js')(sequelize);
-
-    db.Examscores = require('../_scores/exam.model.js')(sequelize);
-  
-
-
-
+    db.Scorelist = require('../-grades/score.model.js')(sequelize);
 
     // sync all models with database first para di mag error     // await sequelize.sync();
     await db.Account.sync({ alter: true }); 
@@ -64,14 +54,9 @@ async function initialize() {
     await db.Semesterlist.sync({ alter: true });
     await db.Subjectlist.sync({ alter: true });
     await db.Classlist.sync({ alter: true });
-    await db.Attendancescores.sync({ alter: true }); 
-    await db.Participationscores.sync({ alter: true }); 
-    await db.Quizscores.sync({ alter: true }); 
-    await db.ActivityProjectscores.sync({ alter: true }); 
-    await db.Examscores.sync({ alter: true }); 
-    await db.Gradelist.sync({ alter: true }); 
-  
-
+    await db.Studentlist.sync({ alter: true });
+    await db.Gradelist.sync({ alter: true });
+    await db.Scorelist.sync({ alter: true });
     // Now add the relationships
     addRelationships();
 
@@ -81,7 +66,7 @@ async function initialize() {
 
     // await sequelize.sync(); //kani na gamiton kung mana system yaa
 
-    // await initializeData(db);    //i comment out ni after doy kung mana kag npm start kausa
+    await initializeData(db);    //i comment out ni after doy kung mana kag npm start kausa
 
 }
 
@@ -100,36 +85,18 @@ function addRelationships() {
     db.Semesterlist.belongsTo(db.Classlist, { foreignKey: 'semester' });
     db.Classlist.hasMany(db.Semesterlist, { foreignKey: 'semester' });
 
-    db.Classlist.hasOne(db.Subjectlist, { foreignKey: 'subjectcode' });
-    db.Subjectlist.belongsTo(db.Classlist, { foreignKey: 'subjectcode' }); 
+    // db.Classlist.hasOne(db.Subjectlist, { foreignKey: 'subjectcode' });
+    // db.Subjectlist.belongsTo(db.Classlist, { foreignKey: 'subjectcode' }); 
 
-    db.Account.hasMany(db.Gradelist, { foreignKey: 'studentid' });
-    db.Gradelist.belongsTo(db.Account, { foreignKey: 'studentid' });
-    
+    db.Classlist.belongsTo(db.Subjectlist, { foreignKey: 'subjectcode', as: 'Subjectitle' });
+    db.Subjectlist.hasMany(db.Classlist, { foreignKey: 'subjectcode' });
 
-    // db.Classlist.hasMany(db.Gradelist, { foreignKey: 'classid' });
-    // db.Gradelist.belongsTo(db.Classlist, { foreignKey: 'classid' });
-
+    db.Classlist.belongsTo(db.Account, { foreignKey: 'teacherid', as: 'TeacherInfo' });
+    db.Account.hasMany(db.Classlist, { foreignKey: 'teacherid' });
 
 
-    // db.Classlist.hasMany(db.Attendancescores, { foreignKey: 'classid' });
-    // db.Attendancescores.belongsTo(db.Classlist, { foreignKey: 'classid' });
-
-    db.Attendancescores.hasOne(db.Gradelist, { foreignKey: 'attendanceid' });
-    db.Gradelist.belongsTo(db.Attendancescores, { foreignKey: 'attendanceid' });
-
-    db.Participationscores.hasOne(db.Gradelist, { foreignKey: 'participationid' });
-    db.Gradelist.belongsTo(db.Participationscores, { foreignKey: 'participationid' });
-
-    db.Quizscores.hasOne(db.Gradelist, { foreignKey: 'quizid' });
-    db.Gradelist.belongsTo(db.Quizscores, { foreignKey: 'quizid' });
-
-    db.ActivityProjectscores.hasOne(db.Gradelist, { foreignKey: 'activityprojectid' });
-    db.Gradelist.belongsTo(db.ActivityProjectscores, { foreignKey: 'activityprojectid' });
-
-    db.Examscores.hasOne(db.Gradelist, { foreignKey: 'examid' });
-    db.Gradelist.belongsTo(db.Examscores, { foreignKey: 'examid' });
-
+    db.Account.hasMany(db.Studentlist, { foreignKey: 'studentid', as: 'studentinfo' });
+    db.Studentlist.belongsTo(db.Account, { foreignKey: 'studentid', as: 'studentinfo' });
     
 
 

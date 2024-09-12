@@ -102,7 +102,7 @@ async function getRefreshToken(token) {
 
 function generateJwtToken(account) {
     // create a jwt token containing the account id that expires in 15 minutes
-    return jwt.sign({ sub: account.id, id: account.id, role: account.role }, config.secret, { expiresIn: '30m' });
+    return jwt.sign({ sub: account.id, id: account.id, role: account.role }, config.secret, { expiresIn: '90m' }); //ginawa 90 minutes
 }
 
 function generateRefreshToken(account, ipAddress) {
