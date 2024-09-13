@@ -21,6 +21,9 @@ function model(sequelize) {
             }
         },
 
+        attendanceDate:{type: DataTypes.DATEONLY, allowNull: true, },
+        attendanceStatus:{type: DataTypes.STRING, allowNull: true, defaultValue: ''},
+
         term:{type: DataTypes.STRING, allowNull: true, },
         scoretype:{type: DataTypes.STRING, allowNull: true, },
         score:{type: DataTypes.INTEGER, allowNull: true, },

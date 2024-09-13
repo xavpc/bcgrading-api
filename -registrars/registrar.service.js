@@ -258,6 +258,7 @@ async function addStudentToClass(params) {
         const scoreEntry = await db.Scorelist.create({
             gradeid: grade.gradeid,          // Reference the existing grade entry
             studentgradeid: addstudent.studentgradeid, // Reference the newly added student
+            attendanceDate: grade.attendanceDate,
             term: grade.term,                // Copy term from the grade
             scoretype: grade.scoretype,      // Copy scoretype from the grade
             score: 0,                        // Initialize score as 0 (can be updated later)

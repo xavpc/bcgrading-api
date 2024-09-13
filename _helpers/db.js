@@ -99,5 +99,7 @@ function addRelationships() {
     db.Studentlist.belongsTo(db.Account, { foreignKey: 'studentid', as: 'studentinfo' });
     
 
+    db.Studentlist.hasMany(db.Scorelist, { foreignKey: 'studentgradeid' });
+    db.Scorelist.belongsTo(db.Studentlist, { foreignKey: 'studentgradeid' });
 
 }

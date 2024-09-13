@@ -13,10 +13,12 @@ function model(sequelize) {
                     key: 'classid' 
                 }
             },  
+            attendanceDate:{type: DataTypes.DATEONLY, allowNull: true, },
+        
 
         term:{type: DataTypes.STRING, allowNull: true, },
         scoretype:{type: DataTypes.STRING, allowNull: true, },
-        score:{type: DataTypes.INTEGER, allowNull: true, },
+  
         perfectscore:{type: DataTypes.INTEGER, allowNull: true, },
    
 

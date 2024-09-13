@@ -16,6 +16,7 @@ router.get('/subjects/:teacherid', authorize(Role.Teacher),  getAllSubject);
 
 router.get('/studentlist/:classid', authorize(Role.Teacher), getStudentsInClass);
 router.post('/addgrade',  newGradeSchema,addnewGrade);
+router.post('/addattendance',  newAttendanceSchema,addNewAttendance);
 
 router.get('/Prelim/Attendance/:classid', getPrelimAttendance);
 
@@ -50,6 +51,8 @@ router.get('/Final/Quiz/:classid', getFinalQuiz);
 router.get('/Final/Activity/:classid', getFinalActivity);
 
 router.get('/Final/Exam/:classid', getFinalExam);
+
+router.get('/getgradelist/:gradeid', getGradeList);
 
 module.exports = router;
 
@@ -97,6 +100,16 @@ function addnewGrade(req, res, next) {
         .catch(next);
 }
 
+function addNewAttendance(req, res, next) {
+    Service.addNewAttendance(req.body)
+        .then(result => res.json({
+        message: result.message,
+        gradeDetails: result.gradeDetails,
+        scoreEntries: result.scoreEntries
+        }))
+        .catch(next);
+}
+
 //schema functions
 
 function newGradeSchema(req, res, next) {
@@ -104,14 +117,24 @@ function newGradeSchema(req, res, next) {
         classid: Joi.number().required(),
         term: Joi.string().valid('Prelim', 'Midterm', 'Finals').required(),
         scoretype: Joi.string().valid('Attendance', 'Participation', 'Quiz', 'Activity', 'Exam').required(),
-        score: Joi.number().required(),
+        // score: Joi.number().required(),
         perfectscore: Joi.number().required(),
     });
     
     validateRequest(req, next, schema);
 }
 
-
+function newAttendanceSchema(req, res, next) {
+    const schema = Joi.object({   
+        classid: Joi.number().required(),
+        term: Joi.string().valid('Prelim', 'Midterm', 'Finals').required(),
+        scoretype: Joi.string().valid('Attendance', 'Participation', 'Quiz', 'Activity', 'Exam').required(),
+        attendanceDate: Joi.date().required(),
+      
+    });
+    
+    validateRequest(req, next, schema);
+}
 
 function getPrelimAttendance(req, res, next) {
     Service.getPrelimAttendance(req.params.classid)
@@ -198,5 +221,14 @@ function  getFinalActivity(req, res, next) {
 function getFinalExam(req, res, next) {
     Service.getFinalExam(req.params.classid)
         .then(classes => res.json(classes))
+        .catch(next);
+}
+
+
+
+
+function getGradeList(req, res, next) {
+    Service.getGradeList(req.params.gradeid)
+        .then(grades => res.json(grades))
         .catch(next);
 }
