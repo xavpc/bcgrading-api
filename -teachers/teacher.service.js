@@ -205,14 +205,14 @@ async function addNewAttendance(params) {
         where: {
             classid: classid,
             attendanceDate: attendanceDate,
-            term: term,
+            // term: term,
             scoretype: scoretype
         }
     });
 
     if (existingAttendance) {
         const formattedDate = new Date(attendanceDate).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
-        throw new Error(`Attendance Date:${formattedDate} already exists in the term ${term}  for class with ID: ${classid}`);
+        throw new Error(`Attendance Date:${formattedDate} already exists for this class!`);
     }
 
     // Find all students in the same class
