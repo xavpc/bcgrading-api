@@ -275,7 +275,7 @@ async function getPrelimActivity(classid) {
         where: { 
             classid: classid,
             term: 'Prelim',
-            scoretype: 'Activity'  
+            scoretype: 'Activity-Project'  
         }
     });
 }
@@ -326,7 +326,7 @@ async function getMidtermActivity(classid) {
         where: { 
             classid: classid,
             term: 'Midterm',
-            scoretype: 'Activity'  
+            scoretype: 'Activity-Project'  
         }
     });
 }
@@ -376,7 +376,7 @@ async function getFinalActivity(classid) {
         where: { 
             classid: classid,
             term: 'Final',
-            scoretype: 'Activity'  
+            scoretype: 'Activity-Project'  
         }
     });
 }
