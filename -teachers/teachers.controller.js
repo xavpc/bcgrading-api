@@ -18,6 +18,7 @@ router.get('/studentlist/:classid', authorize(Role.Teacher), getStudentsInClass)
 router.post('/addgrade',  newGradeSchema,addnewGrade);
 router.post('/addattendance',  newAttendanceSchema,addNewAttendance);
 router.post('/addexam',  newExamSchema,addNewExam);
+router.put('/updateattendance/:scoreid', updateAttendance,AttendanceSchema);
 
 router.get('/Prelim/Attendance/:classid', getPrelimAttendance);
 
@@ -253,4 +254,20 @@ function getGradeList(req, res, next) {
     Service.getGradeList(req.params.gradeid)
         .then(grades => res.json(grades))
         .catch(next);
+}
+
+function updateAttendance(req, res, next) {
+    Service.updateAttendance(req.params.scoreid, req.body)
+        .then((updatedGrade) => res.json({
+            message: 'Grade updated successfully',
+            data: updatedGrade
+        }))
+        .catch(next);
+}
+
+function AttendanceSchema(req, res, next) {
+    const schema = Joi.object({
+        attendanceStatus: Joi.string().valid('Present', 'Absent', 'Late', 'Excused').required(),
+    });
+    validateRequest(req, next, schema);
 }

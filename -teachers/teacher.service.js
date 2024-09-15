@@ -26,6 +26,7 @@ module.exports = {
   getFinalActivity, 
   getFinalExam,
   getGradeList,
+  updateAttendance,
 
 };
 
@@ -482,4 +483,45 @@ async function getGradeList(gradeid) {
             }
         ]
     });
+}
+
+
+
+async function updateAttendance(scoreid, params) {
+    const attendancechange = await db.Scorelist.findByPk(scoreid);
+
+    if (!attendancechange) {
+        throw new Error(`Score entry with ID ${scoreid} not found.`);
+    }
+
+    // Update the attendanceStatus and score based on the new attendance status
+    const { attendanceStatus } = params;
+
+    switch (attendanceStatus) {
+        case 'Present':
+            attendancechange.score = 10;
+            break;
+        case 'Absent':
+            attendancechange.score = 0;
+            break;
+        case 'Late':
+            attendancechange.score = 7;
+            break;
+        case 'Excused':
+            attendancechange.score = 5;
+            break;
+        default:
+            throw new Error('Invalid attendance status');
+    }
+
+    // Assign any additional changes from params to the attendancechange object
+    Object.assign(attendancechange, params);
+
+    // Update the 'updated' timestamp
+    attendancechange.updated = new Date();
+
+    // Save the updated record
+    await attendancechange.save();
+
+    return attendancechange.get();
 }
