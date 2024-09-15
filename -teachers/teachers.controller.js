@@ -115,7 +115,7 @@ function addNewAttendance(req, res, next) {
 function newGradeSchema(req, res, next) {
     const schema = Joi.object({   
         classid: Joi.number().required(),
-        term: Joi.string().valid('Prelim', 'Midterm', 'Finals').required(),
+        term: Joi.string().valid('Prelim', 'Midterm', 'Final').required(),
         scoretype: Joi.string().valid('Attendance', 'Participation', 'Quiz', 'Activity-Project', 'Exam').required(),
         // score: Joi.number().required(),
         perfectscore: Joi.number().required(),
@@ -127,7 +127,7 @@ function newGradeSchema(req, res, next) {
 function newAttendanceSchema(req, res, next) {
     const schema = Joi.object({   
         classid: Joi.number().required(),
-        term: Joi.string().valid('Prelim', 'Midterm', 'Finals').required(),
+        term: Joi.string().valid('Prelim', 'Midterm', 'Final').required(),
         scoretype: Joi.string().valid('Attendance').required(),
         attendanceDate: Joi.date().required(),
       
