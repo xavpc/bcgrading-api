@@ -17,6 +17,7 @@ router.get('/subjects/:teacherid', authorize(Role.Teacher),  getAllSubject);
 router.get('/studentlist/:classid', authorize(Role.Teacher), getStudentsInClass);
 router.post('/addgrade',  newGradeSchema,addnewGrade);
 router.post('/addattendance',  newAttendanceSchema,addNewAttendance);
+router.post('/addexam',  newExamSchema,addNewExam);
 
 router.get('/Prelim/Attendance/:classid', getPrelimAttendance);
 
@@ -110,13 +111,23 @@ function addNewAttendance(req, res, next) {
         .catch(next);
 }
 
+function addNewExam(req, res, next) {
+    Service.addNewExam(req.body)
+        .then(result => res.json({
+        message: result.message,
+        gradeDetails: result.gradeDetails,
+        scoreEntries: result.scoreEntries
+        }))
+        .catch(next);
+}
+
 //schema functions
 
 function newGradeSchema(req, res, next) {
     const schema = Joi.object({   
         classid: Joi.number().required(),
         term: Joi.string().valid('Prelim', 'Midterm', 'Final').required(),
-        scoretype: Joi.string().valid('Attendance', 'Participation', 'Quiz', 'Activity-Project', 'Exam').required(),
+        scoretype: Joi.string().valid('Participation', 'Quiz', 'Activity-Project', 'Exam').required(),
         // score: Joi.number().required(),
         perfectscore: Joi.number().required(),
     });
@@ -130,6 +141,17 @@ function newAttendanceSchema(req, res, next) {
         term: Joi.string().valid('Prelim', 'Midterm', 'Final').required(),
         scoretype: Joi.string().valid('Attendance').required(),
         attendanceDate: Joi.date().required(),
+      
+    });
+    
+    validateRequest(req, next, schema);
+}
+function newExamSchema(req, res, next) {
+    const schema = Joi.object({   
+        classid: Joi.number().required(),
+        term: Joi.string().valid('Prelim', 'Midterm', 'Final').required(),
+        scoretype: Joi.string().valid('Exam').required(),
+        perfectscore: Joi.number().required(),
       
     });
     

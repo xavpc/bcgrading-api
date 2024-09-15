@@ -6,6 +6,7 @@ module.exports = {
   getStudentsInClass,
   addNewGrade,
   addNewAttendance,
+  addNewExam,
   getAllYear,
   getAllSemester,
   getAllSubject,
@@ -191,55 +192,127 @@ async function addNewGrade(params) {
 
 
 async function addNewAttendance(params) {
-    const { classid, attendanceDate, term, scoretype} = params;
-  
+    const { classid, attendanceDate, term, scoretype } = params;
+
     // Validate that the class exists
     const classRecord = await db.Classlist.findOne({ where: { classid: classid } });
     if (!classRecord) {
         throw new Error(`Class with ID: ${classid} not found`);
+    }
+
+    // Check if attendance for the same date, term, and class already exists
+    const existingAttendance = await db.Gradelist.findOne({
+        where: {
+            classid: classid,
+            attendanceDate: attendanceDate,
+            term: term,
+            scoretype: scoretype
+        }
+    });
+
+    if (existingAttendance) {
+        const formattedDate = new Date(attendanceDate).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+        throw new Error(`Attendance Date:${formattedDate} already exists in the term ${term}  for class with ID: ${classid}`);
+    }
+
+    // Find all students in the same class
+    const studentsInClass = await db.Studentlist.findAll({ where: { classid: classid } });
+
+    if (studentsInClass.length === 0) {
+        throw new Error(`No students found in class with ID: ${classid}`);
+    }
+
+    // Create the new grade entry in Gradelist
+    const newGrade = await db.Gradelist.create({
+        classid: classid,
+        attendanceDate: attendanceDate,
+        term: term,
+        scoretype: scoretype,
+        perfectscore: 10,
+    });
+
+    // Loop over each student and create an entry in Scorelist for each one
+    const scorelistEntries = [];
+    for (const student of studentsInClass) {
+        const scoreEntry = await db.Scorelist.create({
+            gradeid: newGrade.gradeid,
+            studentgradeid: student.studentgradeid,
+            attendanceDate: newGrade.attendanceDate,
+            term: newGrade.term,           // Using the term from the newGrade entry
+            scoretype: newGrade.scoretype, // Using the scoretype from the newGrade entry
+            score: 0,
+            perfectscore: newGrade.perfectscore
+        });
+        scorelistEntries.push(scoreEntry); // Store the entry for response
+    }
+
+    return {
+        message: "Attendance added successfully for all students in the class",
+        gradeDetails: newGrade,
+        scoreEntries: scorelistEntries,
+    };
+}
+
+
+
+  async function addNewExam(params) {
+    const { classid, term, scoretype, perfectscore } = params;
+  
+    // Validate that the class exists
+    const classRecord = await db.Classlist.findOne({ where: { classid: classid } });
+    if (!classRecord) {
+      throw new Error(`Class with ID: ${classid} not found`);
+    }
+  
+    // Check if a grade entry already exists for the same classid, term, and scoretype
+    const existingGrade = await db.Gradelist.findOne({
+      where: {
+        classid: classid,
+        term: term,
+        scoretype: scoretype
+      }
+    });
+  
+    if (existingGrade) {
+      throw new Error(`Only 1 Major ${scoretype} allowed per term!!`);
     }
   
     // Find all students in the same class
     const studentsInClass = await db.Studentlist.findAll({ where: { classid: classid } });
   
     if (studentsInClass.length === 0) {
-        throw new Error(`No students found in class with ID: ${classid}`);
+      throw new Error(`No students found in class with ID: ${classid}`);
     }
   
     // Create the new grade entry in Gradelist
     const newGrade = await db.Gradelist.create({
-        classid: classid,
-        attendanceDate: attendanceDate,
-  
-        term: term,
-        scoretype: scoretype,
-        perfectscore: 10,
+      classid: classid,
+      term: term,
+      scoretype: scoretype,
+      perfectscore: perfectscore,
     });
   
     // Loop over each student and create an entry in Scorelist for each one
     const scorelistEntries = [];
     for (const student of studentsInClass) {
-        const scoreEntry = await db.Scorelist.create({
-          gradeid: newGrade.gradeid,
-          studentgradeid: student.studentgradeid,
-          attendanceDate: newGrade.attendanceDate,
-          term: newGrade.term,           // Using the term from the newGrade entry
-          scoretype: newGrade.scoretype, // Using the scoretype from the newGrade entry
-          score: 0,
-          perfectscore: newGrade.perfectscore
-        });
-        scorelistEntries.push(scoreEntry); // Store the entry for response
+      const scoreEntry = await db.Scorelist.create({
+        gradeid: newGrade.gradeid,
+        studentgradeid: student.studentgradeid,
+        term: newGrade.term,           // Using the term from the newGrade entry
+        scoretype: newGrade.scoretype, // Using the scoretype from the newGrade entry
+        score: 0,
+        perfectscore: newGrade.perfectscore
+      });
+      scorelistEntries.push(scoreEntry); // Store the entry for response
     }
   
     return {
-        message: "Grade added successfully for all students in the class",
-        gradeDetails: newGrade,
-        scoreEntries: scorelistEntries,
+      message: "Grade added successfully for all students in the class",
+      gradeDetails: newGrade,
+      scoreEntries: scorelistEntries,
     };
   }
-
-
-
+  
 
 
 async function getPrelimAttendance(classid) {
