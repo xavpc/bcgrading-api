@@ -534,7 +534,12 @@ async function updateScore(scoreid, params) {
         throw new Error(`Score entry with ID ${scoreid} not found.`);
     }
 
-    Object.assign(params);
+    Object.assign(scorechange, params);
+
+      // Check if the new score exceeds the perfectscore
+      if (scorechange.score > scorechange.perfectscore) {
+        throw new Error(`The score (${scorechange.score}) cannot be greater than the perfect score (${scorechange.perfectscore}).`);
+    }
 
     scorechange.updated = new Date();
 
