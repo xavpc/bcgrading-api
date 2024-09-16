@@ -19,6 +19,7 @@ router.post('/addgrade',  newGradeSchema,addnewGrade);
 router.post('/addattendance',  newAttendanceSchema,addNewAttendance);
 router.post('/addexam',  newExamSchema,addNewExam);
 router.put('/updateattendance/:scoreid', updateAttendance,AttendanceSchema);
+router.put('/updatescore/:scoreid', updateScore,ScoreSchema);
 
 router.get('/Prelim/Attendance/:classid', getPrelimAttendance);
 
@@ -258,9 +259,10 @@ function getGradeList(req, res, next) {
 
 function updateAttendance(req, res, next) {
     Service.updateAttendance(req.params.scoreid, req.body)
-        .then((updatedGrade) => res.json({
-            message: 'Grade updated successfully',
-            data: updatedGrade
+        .then((updatedAttendance) => res.json({
+            // message: 'Grade updated successfully',
+            // data: 
+            updatedAttendance
         }))
         .catch(next);
 }
@@ -268,6 +270,24 @@ function updateAttendance(req, res, next) {
 function AttendanceSchema(req, res, next) {
     const schema = Joi.object({
         attendanceStatus: Joi.string().valid('Present', 'Absent', 'Late', 'Excused').required(),
+    });
+    validateRequest(req, next, schema);
+}
+
+
+function updateScore(req, res, next) {
+    Service.updateScore(req.params.scoreid, req.body)
+        .then((updatedScore) => res.json({
+            // message: 'Grade updated successfully',
+            // data: 
+            updatedScore
+        }))
+        .catch(next);
+}
+
+function ScoreSchema(req, res, next) {
+    const schema = Joi.object({
+        score: Joi.number().required(),
     });
     validateRequest(req, next, schema);
 }

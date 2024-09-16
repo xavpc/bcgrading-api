@@ -545,5 +545,5 @@ async function updateScore(scoreid, params) {
 
     await scorechange.save();
 
-    return scorechange.get
+    return scorechange.get();
 }
