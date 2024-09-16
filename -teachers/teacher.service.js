@@ -27,7 +27,7 @@ module.exports = {
   getFinalExam,
   getGradeList,
   updateAttendance,
-
+  updateScore
 };
 
 
@@ -524,4 +524,21 @@ async function updateAttendance(scoreid, params) {
     await attendancechange.save();
 
     return attendancechange.get();
+}
+
+
+async function updateScore(scoreid, params) {
+    const scorechange = await db.Scorelist.findByPk(scoreid);
+
+    if (!scorechange) {
+        throw new Error(`Score entry with ID ${scoreid} not found.`);
+    }
+
+    Object.assign(params);
+
+    scorechange.updated = new Date();
+
+    await scorechange.save();
+
+    return scorechange.get
 }
