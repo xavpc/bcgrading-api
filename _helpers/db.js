@@ -49,22 +49,30 @@ async function initialize() {
     db.Scorelist = require('../-grades/score.model.js')(sequelize);
 
     // sync all models with database first para di mag error     // await sequelize.sync();
-    await db.Account.sync({ alter: true }); 
-    await db.Yearlist.sync({ alter: true });
-    await db.Semesterlist.sync({ alter: true });
-    await db.Subjectlist.sync({ alter: true });
-    await db.Classlist.sync({ alter: true });
-    await db.Studentlist.sync({ alter: true });
-    await db.Gradelist.sync({ alter: true });
-    await db.Scorelist.sync({ alter: true });
+    await db.Account.sync(); 
+    await db.Yearlist.sync();
+    await db.Semesterlist.sync();
+    await db.Subjectlist.sync();
+    await db.Classlist.sync();
+    await db.Studentlist.sync();
+    await db.Gradelist.sync();
+    await db.Scorelist.sync();
+      // await db.Account.sync({ alter: true }); 
+    // await db.Yearlist.sync({ alter: true });
+    // await db.Semesterlist.sync({ alter: true });
+    // await db.Subjectlist.sync({ alter: true });
+    // await db.Classlist.sync({ alter: true });
+    // await db.Studentlist.sync({ alter: true });
+    // await db.Gradelist.sync({ alter: true });
+    // await db.Scorelist.sync({ alter: true });
     // Now add the relationships
     addRelationships();
 
     // Sync again to apply the relationships kani kuhaon na ug mana ang system
-    await sequelize.sync({ alter: true });
+    // await sequelize.sync({ alter: true });
 
 
-    // await sequelize.sync(); //kani na gamiton kung mana system yaa
+    await sequelize.sync(); //kani na gamiton kung mana system yaa
 
     await initializeData(db);    //i comment out ni after doy kung mana kag npm start kausa
 
