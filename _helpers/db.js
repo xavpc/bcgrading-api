@@ -48,6 +48,8 @@ async function initialize() {
 
     db.Scorelist = require('../-grades/score.model.js')(sequelize);
 
+    db.ComputedGradelist = require('../-grades/computedgrade.model.js')(sequelize);
+
     // sync all models with database first para di mag error     // await sequelize.sync();
     await db.Account.sync(); 
     await db.Yearlist.sync();
@@ -109,5 +111,12 @@ function addRelationships() {
 
     db.Studentlist.hasMany(db.Scorelist, { foreignKey: 'studentgradeid' });
     db.Scorelist.belongsTo(db.Studentlist, { foreignKey: 'studentgradeid' });
+
+    
+    db.Gradelist.hasMany(db.Scorelist, { foreignKey: 'gradeid' });
+    db.Scorelist.belongsTo(db.Gradelist, { foreignKey: 'gradeid' });
+
+    db.ComputedGradelist.belongsTo(db.Studentlist, { foreignKey: 'studentgradeid' });
+    db.Studentlist.hasMany(db.ComputedGradelist, { foreignKey: 'studentgradeid' });
 
 }

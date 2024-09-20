@@ -14,12 +14,14 @@ router.get('/years/:teacherid', authorize(Role.Teacher),  getAllYear);
 router.get('/semesters/:teacherid', authorize(Role.Teacher),  getAllSemester);
 router.get('/subjects/:teacherid', authorize(Role.Teacher),  getAllSubject);
 
-router.get('/studentlist/:classid', authorize(Role.Teacher), getStudentsInClass);
+router.get('/studentlist/:classid',  getStudentsInClass);
 router.post('/addgrade',  newGradeSchema,addnewGrade);
 router.post('/addattendance',  newAttendanceSchema,addNewAttendance);
 router.post('/addexam',  newExamSchema,addNewExam);
 router.put('/updateattendance/:scoreid', updateAttendance,AttendanceSchema);
 router.put('/updatescore/:scoreid', updateScore,ScoreSchema);
+router.get('/gradesofstudents/:classid', getStudentsInClassAttendancePrelim);
+
 
 router.get('/Prelim/Attendance/:classid', getPrelimAttendance);
 
@@ -290,4 +292,14 @@ function ScoreSchema(req, res, next) {
         score: Joi.number().required(),
     });
     validateRequest(req, next, schema);
+}
+
+function getStudentsInClassAttendancePrelim(req, res, next) {
+    // Directly use req.params.classid without destructuring
+    Service.getStudentsInClassAttendancePrelim(req.params.classid)
+        .then(result => res.json({
+            message: result.message,
+            students: result.students
+        }))
+        .catch(next);
 }

@@ -27,7 +27,9 @@ module.exports = {
   getFinalExam,
   getGradeList,
   updateAttendance,
-  updateScore
+  updateScore,
+  computeAttendanceGrade,
+  getStudentsInClassAttendancePrelim
 };
 
 
@@ -547,3 +549,140 @@ async function updateScore(scoreid, params) {
 
     return scorechange.get();
 }
+
+
+async function computeAttendanceGrade(studentgradeid, term) {
+    try {
+        // Fetch all attendance records for the student for the given term
+        const attendanceRecords = await db.Scorelist.findAll({
+            where: {
+                studentgradeid: studentgradeid,
+                scoretype: 'Attendance',
+                term: term
+            },
+            include: [
+                {
+                    model: db.Gradelist, // Include Gradelist to access classid
+                    attributes: ['classid'] // Only fetch classid
+                }
+            ]
+        });
+
+        if (attendanceRecords.length === 0) {
+            throw new Error(`No attendance records found for studentgradeid ${studentgradeid} for term ${term}.`);
+        }
+
+        // Compute total attendance score and perfect score
+        const totalattendance = attendanceRecords.reduce((acc, record) => acc + record.score, 0);
+        const perfectattendancescore = attendanceRecords.reduce((acc, record) => acc + record.perfectscore, 0);
+
+        // Fetch the classid from the Gradelist association (first attendance record)
+        const classid = attendanceRecords[0]?.Gradelist?.classid; // Ensure classid is present in Gradelist
+
+        if (!classid) {
+            throw new Error(`No classid found in the attendance records for studentgradeid ${studentgradeid}`);
+        }
+
+        // Check if an entry already exists in ComputedGradelist for the student and term
+        const existingComputedGrade = await db.ComputedGradelist.findOne({
+            where: {
+                studentgradeid: studentgradeid,
+                term: term
+            }
+        });
+
+        if (existingComputedGrade) {
+            // Update the existing record
+            existingComputedGrade.totalattendance = totalattendance;
+            existingComputedGrade.perfectattendancescore = perfectattendancescore;
+            existingComputedGrade.updated = new Date();
+
+            await existingComputedGrade.save();
+            return existingComputedGrade;
+        } else {
+            // Create a new entry in ComputedGradelist
+            const newComputedGrade = await db.ComputedGradelist.create({
+                classid: classid, // Pass the classid here
+                studentgradeid: studentgradeid,
+                term: term,
+                totalattendance: totalattendance,
+                perfectattendancescore: perfectattendancescore
+            });
+
+            return newComputedGrade;
+        }
+    } catch (error) {
+        console.error('Error computing attendance grade:', error);
+        throw error;
+    }
+}
+
+
+
+
+async function getStudentsInClassAttendancePrelim(classid) {
+    try {
+        // Validate that the class exists
+        const classRecord = await db.Classlist.findOne({
+            where: { classid: classid }
+        });
+
+        if (!classRecord) {
+            throw new Error(`Class with id ${classid} not found.`);
+        }
+
+        // Fetch all students associated with the class
+        const students = await db.Studentlist.findAll({
+            where: { classid: classid },
+            include: [
+                {
+                    model: db.Account, 
+                    as: 'studentinfo', 
+                    attributes: ['firstName', 'lastName', 'id'] 
+                }
+            ]
+        });
+
+        if (students.length === 0) {
+            return {
+                message: `No students found for class with id ${classid}.`
+            };
+        }
+
+        // Compute attendance grades for each student
+        for (const student of students) {
+            await computeAttendanceGrade(student.studentgradeid, 'Prelim'); 
+        }
+
+        // Refetch students with the updated ComputedGradelist
+        const updatedStudents = await db.Studentlist.findAll({
+            where: { classid: classid },
+            include: [
+                {
+                    model: db.Account,
+                    as: 'studentinfo',
+                    attributes: ['firstName', 'lastName', 'id']
+                },
+                {
+                    model: db.ComputedGradelist, 
+                    attributes: ['studentgradeid', 'term', 'totalattendance', 'perfectattendancescore'],
+                    where: { term: 'Prelim' },
+                    required: false
+                }
+            ]
+        });
+
+        return {
+            message: `Students and computed grades retrieved successfully for class with id ${classid}.`,
+            students: updatedStudents.map(student => student.get({ plain: true }))
+        };
+
+    } catch (error) {
+        console.error('Error retrieving students for class:', error); 
+        throw new Error('Failed to retrieve students for class.'); 
+    }
+}
+
+
+
+

@@ -1,3 +1,4 @@
+//db.Scorelist
 const { DataTypes } = require('sequelize');
 
 module.exports = model;
