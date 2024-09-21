@@ -639,6 +639,9 @@ async function computeGrade(studentgradeid, term) {
         const activityproject45percent = (totalactivityproject / perfectactivityprojectscore) * 45;
         const exam30percent = (totalexam / perfectexamscore) * 30;
 
+        // Compute the final computed grade by summing the weighted percentages
+        const finalcomputedgrade = attendance5percent + participation5percent + quiz15percent + activityproject45percent + exam30percent;
+
         // Check if an entry already exists in ComputedGradelist for the student and term
         const existingComputedGrade = await db.ComputedGradelist.findOne({
             where: {
@@ -669,6 +672,8 @@ async function computeGrade(studentgradeid, term) {
             existingComputedGrade.perfectexamscore = perfectexamscore;
             existingComputedGrade.exam30percent = exam30percent;
 
+            existingComputedGrade.finalcomputedgrade = finalcomputedgrade;
+
             existingComputedGrade.updated = new Date();
 
             await existingComputedGrade.save();
@@ -698,6 +703,8 @@ async function computeGrade(studentgradeid, term) {
                 totalexam: totalexam,
                 perfectexamscore: perfectexamscore,
                 exam30percent: exam30percent,
+
+                finalcomputedgrade: finalcomputedgrade // Include final computed grade
             });
 
             return newComputedGrade;
@@ -707,6 +714,7 @@ async function computeGrade(studentgradeid, term) {
         throw error;
     }
 }
+
 
 
 

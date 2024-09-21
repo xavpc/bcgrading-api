@@ -44,6 +44,7 @@ function model(sequelize) {
 
         finalcomputedgrade:{type: DataTypes.DOUBLE, allowNull: true, },
 
+        transmutedgrade:{type: DataTypes.DOUBLE, allowNull: true, },
 
    
 
@@ -64,13 +65,3 @@ function model(sequelize) {
 
 
  
-        //     gradeid:{
-        //         type: DataTypes.INTEGER, allowNull: false,
-        //         references: {
-        //             model: 'gradelists', 
-        //             key: 'gradeid' 
-        //         }
-        //     },
-
-        
-      // attendancepercentage:{type: DataTypes.DOUBLE, allowNull: true, },
