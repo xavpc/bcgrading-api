@@ -24,26 +24,23 @@ function model(sequelize) {
         term:{type: DataTypes.STRING, allowNull: true, },
         totalattendance:{type: DataTypes.INTEGER, allowNull: true, },
         perfectattendancescore:{type: DataTypes.INTEGER, allowNull: true, },
-        attendance5percent:{type: DataTypes.DOUBLE, allowNull: true, },
+
 
         totalparticipation:{type: DataTypes.INTEGER, allowNull: true, },
         perfectparticipationscore:{type: DataTypes.INTEGER, allowNull: true, },
-        participation5percent:{type: DataTypes.DOUBLE, allowNull: true, },
+
 
         totalquiz:{type: DataTypes.INTEGER, allowNull: true, },
         perfectquizscore:{type: DataTypes.INTEGER, allowNull: true, },
-        participation15percent:{type: DataTypes.DOUBLE, allowNull: true, },
+
 
         totalactivityproject:{type: DataTypes.INTEGER, allowNull: true, },
         perfectactivityprojectscore:{type: DataTypes.INTEGER, allowNull: true, },
-        activityproject45percent:{type: DataTypes.DOUBLE, allowNull: true, },
+
 
         totalexam:{type: DataTypes.INTEGER, allowNull: true, },
         perfectexamscore:{type: DataTypes.INTEGER, allowNull: true, },
-        exam30percent:{type: DataTypes.DOUBLE, allowNull: true, },
-
-        finalcomputedgrade:{type: DataTypes.DOUBLE, allowNull: true, },
-
+  
 
    
 

@@ -28,7 +28,7 @@ module.exports = {
   getGradeList,
   updateAttendance,
   updateScore,
-  computeAttendanceGrade,
+  computeGrade,
   getStudentsInClassAttendancePrelim
 };
 
@@ -551,7 +551,7 @@ async function updateScore(scoreid, params) {
 }
 
 
-async function computeAttendanceGrade(studentgradeid, term) {
+async function computeGrade(studentgradeid, term) {
     try {
         // Fetch all attendance records for the student for the given term
         const attendanceRecords = await db.Scorelist.findAll({
@@ -568,20 +568,76 @@ async function computeAttendanceGrade(studentgradeid, term) {
             ]
         });
 
-        if (attendanceRecords.length === 0) {
-            throw new Error(`No attendance records found for studentgradeid ${studentgradeid} for term ${term}.`);
+        // Fetch other types of records (participation, quiz, activity-project, exam)
+        const participationRecords = await db.Scorelist.findAll({
+            where: {
+                studentgradeid: studentgradeid,
+                scoretype: 'Participation',
+                term: term
+            },
+            include: [{ model: db.Gradelist, attributes: ['classid'] }]
+        });
+
+        const quizRecords = await db.Scorelist.findAll({
+            where: {
+                studentgradeid: studentgradeid,
+                scoretype: 'Quiz',
+                term: term
+            },
+            include: [{ model: db.Gradelist, attributes: ['classid'] }]
+        });
+
+        const activityprojectRecords = await db.Scorelist.findAll({
+            where: {
+                studentgradeid: studentgradeid,
+                scoretype: 'Activity-Project',
+                term: term
+            },
+            include: [{ model: db.Gradelist, attributes: ['classid'] }]
+        });
+
+        const examRecords = await db.Scorelist.findAll({
+            where: {
+                studentgradeid: studentgradeid,
+                scoretype: 'Exam',
+                term: term
+            },
+            include: [{ model: db.Gradelist, attributes: ['classid'] }]
+        });
+
+        // Find the classid from any of the records (attendance, participation, quiz, activity-project, or exam)
+        const classid = attendanceRecords[0]?.Gradelist?.classid ||
+                        participationRecords[0]?.Gradelist?.classid ||
+                        quizRecords[0]?.Gradelist?.classid ||
+                        activityprojectRecords[0]?.Gradelist?.classid ||
+                        examRecords[0]?.Gradelist?.classid;
+
+        if (!classid) {
+            throw new Error(`No classid found in the score records for studentgradeid ${studentgradeid}`);
         }
 
-        // Compute total attendance score and perfect score
+        // Compute total scores and perfect scores for each category
         const totalattendance = attendanceRecords.reduce((acc, record) => acc + record.score, 0);
         const perfectattendancescore = attendanceRecords.reduce((acc, record) => acc + record.perfectscore, 0);
 
-        // Fetch the classid from the Gradelist association (first attendance record)
-        const classid = attendanceRecords[0]?.Gradelist?.classid; // Ensure classid is present in Gradelist
+        const totalparticipation = participationRecords.reduce((acc, record) => acc + record.score, 0);
+        const perfectparticipationscore = participationRecords.reduce((acc, record) => acc + record.perfectscore, 0);
 
-        if (!classid) {
-            throw new Error(`No classid found in the attendance records for studentgradeid ${studentgradeid}`);
-        }
+        const totalquiz = quizRecords.reduce((acc, record) => acc + record.score, 0);
+        const perfectquizscore = quizRecords.reduce((acc, record) => acc + record.perfectscore, 0);
+
+        const totalactivityproject = activityprojectRecords.reduce((acc, record) => acc + record.score, 0);
+        const perfectactivityprojectscore = activityprojectRecords.reduce((acc, record) => acc + record.perfectscore, 0);
+
+        const totalexam = examRecords.reduce((acc, record) => acc + record.score, 0);
+        const perfectexamscore = examRecords.reduce((acc, record) => acc + record.perfectscore, 0);
+
+        // Calculate percentages based on weight
+        const attendance5percent = (totalattendance / perfectattendancescore) * 5;
+        const participation5percent = (totalparticipation / perfectparticipationscore) * 5;
+        const quiz15percent = (totalquiz / perfectquizscore) * 15;
+        const activityproject45percent = (totalactivityproject / perfectactivityprojectscore) * 45;
+        const exam30percent = (totalexam / perfectexamscore) * 30;
 
         // Check if an entry already exists in ComputedGradelist for the student and term
         const existingComputedGrade = await db.ComputedGradelist.findOne({
@@ -595,6 +651,24 @@ async function computeAttendanceGrade(studentgradeid, term) {
             // Update the existing record
             existingComputedGrade.totalattendance = totalattendance;
             existingComputedGrade.perfectattendancescore = perfectattendancescore;
+            existingComputedGrade.attendance5percent = attendance5percent;
+
+            existingComputedGrade.totalparticipation = totalparticipation;
+            existingComputedGrade.perfectparticipationscore = perfectparticipationscore;
+            existingComputedGrade.participation5percent = participation5percent;
+
+            existingComputedGrade.totalquiz = totalquiz;
+            existingComputedGrade.perfectquizscore = perfectquizscore;
+            existingComputedGrade.quiz15percent = quiz15percent;
+
+            existingComputedGrade.totalactivityproject = totalactivityproject;
+            existingComputedGrade.perfectactivityprojectscore = perfectactivityprojectscore;
+            existingComputedGrade.activityproject45percent = activityproject45percent;
+
+            existingComputedGrade.totalexam = totalexam;
+            existingComputedGrade.perfectexamscore = perfectexamscore;
+            existingComputedGrade.exam30percent = exam30percent;
+
             existingComputedGrade.updated = new Date();
 
             await existingComputedGrade.save();
@@ -606,13 +680,30 @@ async function computeAttendanceGrade(studentgradeid, term) {
                 studentgradeid: studentgradeid,
                 term: term,
                 totalattendance: totalattendance,
-                perfectattendancescore: perfectattendancescore
+                perfectattendancescore: perfectattendancescore,
+                attendance5percent: attendance5percent,
+
+                totalparticipation: totalparticipation,
+                perfectparticipationscore: perfectparticipationscore,
+                participation5percent: participation5percent,
+
+                totalquiz: totalquiz,
+                perfectquizscore: perfectquizscore,
+                quiz15percent: quiz15percent,
+
+                totalactivityproject: totalactivityproject,
+                perfectactivityprojectscore: perfectactivityprojectscore,
+                activityproject45percent: activityproject45percent,
+
+                totalexam: totalexam,
+                perfectexamscore: perfectexamscore,
+                exam30percent: exam30percent,
             });
 
             return newComputedGrade;
         }
     } catch (error) {
-        console.error('Error computing attendance grade:', error);
+        console.error('Error computing grade:', error);
         throw error;
     }
 }
@@ -651,7 +742,7 @@ async function getStudentsInClassAttendancePrelim(classid) {
 
         // Compute attendance grades for each student
         for (const student of students) {
-            await computeAttendanceGrade(student.studentgradeid, 'Prelim'); 
+            await computeGrade(student.studentgradeid, 'Prelim'); 
         }
 
         // Refetch students with the updated ComputedGradelist
