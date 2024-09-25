@@ -29,7 +29,9 @@ module.exports = {
   updateAttendance,
   updateScore,
   computeGrade,
-  getStudentsInClassAttendancePrelim
+  getGradesPrelim,
+  getGradesMidterm,
+  getGradesFinal
 };
 
 
@@ -128,25 +130,6 @@ async function getStudentsInClass(classid) {
   }
 }
 
-
-
-// async function addNewGrade(params) {
-//   // Destructure the parameters
-//   const { classid } = params;
-
-//   // Validate the year
-//   const classRecord = await db.Classlist.findOne({
-//       where: { classid: classid }
-//   });
-//   if (!classRecord) {
-//       throw new Error(`Class with ID: ${classid} not found`);
-//   }
-
-//   // If all validations pass, create the new class entry
-//   const newGrade = await db.Gradelist.create(params);
-
-//   return newGrade; 
-// }
 
 async function addNewGrade(params) {
   const { classid, term, scoretype, perfectscore } = params;
@@ -553,59 +536,37 @@ async function updateScore(scoreid, params) {
 
 async function computeGrade(studentgradeid, term) {
     try {
-        // Fetch all attendance records for the student for the given term
+        // Fetch attendance, participation, quiz, activity-project, exam records
         const attendanceRecords = await db.Scorelist.findAll({
             where: {
                 studentgradeid: studentgradeid,
                 scoretype: 'Attendance',
                 term: term
             },
-            include: [
-                {
-                    model: db.Gradelist, // Include Gradelist to access classid
-                    attributes: ['classid'] // Only fetch classid
-                }
-            ]
+            include: [{ model: db.Gradelist, attributes: ['classid'] }]
         });
 
-        // Fetch other types of records (participation, quiz, activity-project, exam)
         const participationRecords = await db.Scorelist.findAll({
-            where: {
-                studentgradeid: studentgradeid,
-                scoretype: 'Participation',
-                term: term
-            },
+            where: { studentgradeid: studentgradeid, scoretype: 'Participation', term: term },
             include: [{ model: db.Gradelist, attributes: ['classid'] }]
         });
 
         const quizRecords = await db.Scorelist.findAll({
-            where: {
-                studentgradeid: studentgradeid,
-                scoretype: 'Quiz',
-                term: term
-            },
+            where: { studentgradeid: studentgradeid, scoretype: 'Quiz', term: term },
             include: [{ model: db.Gradelist, attributes: ['classid'] }]
         });
 
         const activityprojectRecords = await db.Scorelist.findAll({
-            where: {
-                studentgradeid: studentgradeid,
-                scoretype: 'Activity-Project',
-                term: term
-            },
+            where: { studentgradeid: studentgradeid, scoretype: 'Activity-Project', term: term },
             include: [{ model: db.Gradelist, attributes: ['classid'] }]
         });
 
         const examRecords = await db.Scorelist.findAll({
-            where: {
-                studentgradeid: studentgradeid,
-                scoretype: 'Exam',
-                term: term
-            },
+            where: { studentgradeid: studentgradeid, scoretype: 'Exam', term: term },
             include: [{ model: db.Gradelist, attributes: ['classid'] }]
         });
 
-        // Find the classid from any of the records (attendance, participation, quiz, activity-project, or exam)
+        // Find classid from any of the records
         const classid = attendanceRecords[0]?.Gradelist?.classid ||
                         participationRecords[0]?.Gradelist?.classid ||
                         quizRecords[0]?.Gradelist?.classid ||
@@ -632,81 +593,75 @@ async function computeGrade(studentgradeid, term) {
         const totalexam = examRecords.reduce((acc, record) => acc + record.score, 0);
         const perfectexamscore = examRecords.reduce((acc, record) => acc + record.perfectscore, 0);
 
-        // Calculate percentages based on weight
-        const attendance5percent = (totalattendance / perfectattendancescore) * 5;
-        const participation5percent = (totalparticipation / perfectparticipationscore) * 5;
-        const quiz15percent = (totalquiz / perfectquizscore) * 15;
-        const activityproject45percent = (totalactivityproject / perfectactivityprojectscore) * 45;
-        const exam30percent = (totalexam / perfectexamscore) * 30;
+// Safely calculate percentages to avoid division by 0 or null, and limit to 2 decimal places
+const attendance5percent = perfectattendancescore > 0 ? parseFloat(((totalattendance / perfectattendancescore) * 5).toFixed(2)) : 0;
+const participation5percent = perfectparticipationscore > 0 ? parseFloat(((totalparticipation / perfectparticipationscore) * 5).toFixed(2)) : 0;
+const quiz15percent = perfectquizscore > 0 ? parseFloat(((totalquiz / perfectquizscore) * 15).toFixed(2)) : 0;
+const activityproject45percent = perfectactivityprojectscore > 0 ? parseFloat(((totalactivityproject / perfectactivityprojectscore) * 45).toFixed(2)) : 0;
+const exam30percent = perfectexamscore > 0 ? parseFloat(((totalexam / perfectexamscore) * 30).toFixed(2)) : 0;
 
-        // Compute the final computed grade by summing the weighted percentages
-        const finalcomputedgrade = attendance5percent + participation5percent + quiz15percent + activityproject45percent + exam30percent;
+// Calculate final computed grade and limit to 2 decimal places
+const finalcomputedgrade = parseFloat((attendance5percent + participation5percent + quiz15percent + activityproject45percent + exam30percent).toFixed(2));
+
+
+        // Calculate transmuted grade
+        let transmutedgrade = parseFloat((Math.round((5 - (4 * finalcomputedgrade) / 99) * 10) / 10).toFixed(1));
 
         // Check if an entry already exists in ComputedGradelist for the student and term
         const existingComputedGrade = await db.ComputedGradelist.findOne({
-            where: {
-                studentgradeid: studentgradeid,
-                term: term
-            }
+            where: { studentgradeid: studentgradeid, term: term }
         });
 
         if (existingComputedGrade) {
             // Update the existing record
-            existingComputedGrade.totalattendance = totalattendance;
-            existingComputedGrade.perfectattendancescore = perfectattendancescore;
-            existingComputedGrade.attendance5percent = attendance5percent;
-
-            existingComputedGrade.totalparticipation = totalparticipation;
-            existingComputedGrade.perfectparticipationscore = perfectparticipationscore;
-            existingComputedGrade.participation5percent = participation5percent;
-
-            existingComputedGrade.totalquiz = totalquiz;
-            existingComputedGrade.perfectquizscore = perfectquizscore;
-            existingComputedGrade.quiz15percent = quiz15percent;
-
-            existingComputedGrade.totalactivityproject = totalactivityproject;
-            existingComputedGrade.perfectactivityprojectscore = perfectactivityprojectscore;
-            existingComputedGrade.activityproject45percent = activityproject45percent;
-
-            existingComputedGrade.totalexam = totalexam;
-            existingComputedGrade.perfectexamscore = perfectexamscore;
-            existingComputedGrade.exam30percent = exam30percent;
-
-            existingComputedGrade.finalcomputedgrade = finalcomputedgrade;
-
-            existingComputedGrade.updated = new Date();
-
+            Object.assign(existingComputedGrade, {
+                totalattendance,
+                perfectattendancescore,
+                attendance5percent,
+                totalparticipation,
+                perfectparticipationscore,
+                participation5percent,
+                totalquiz,
+                perfectquizscore,
+                quiz15percent,
+                totalactivityproject,
+                perfectactivityprojectscore,
+                activityproject45percent,
+                totalexam,
+                perfectexamscore,
+                exam30percent,
+                finalcomputedgrade,
+                transmutedgrade,
+                updated: new Date()
+            });
             await existingComputedGrade.save();
             return existingComputedGrade;
         } else {
             // Create a new entry in ComputedGradelist
             const newComputedGrade = await db.ComputedGradelist.create({
-                classid: classid, // Pass the classid here
-                studentgradeid: studentgradeid,
-                term: term,
-                totalattendance: totalattendance,
-                perfectattendancescore: perfectattendancescore,
-                attendance5percent: attendance5percent,
-
-                totalparticipation: totalparticipation,
-                perfectparticipationscore: perfectparticipationscore,
-                participation5percent: participation5percent,
-
-                totalquiz: totalquiz,
-                perfectquizscore: perfectquizscore,
-                quiz15percent: quiz15percent,
-
-                totalactivityproject: totalactivityproject,
-                perfectactivityprojectscore: perfectactivityprojectscore,
-                activityproject45percent: activityproject45percent,
-
-                totalexam: totalexam,
-                perfectexamscore: perfectexamscore,
-                exam30percent: exam30percent,
-
-                finalcomputedgrade: finalcomputedgrade // Include final computed grade
+                classid,
+                studentgradeid,
+                term,
+                totalattendance,
+                perfectattendancescore,
+                attendance5percent,
+                totalparticipation,
+                perfectparticipationscore,
+                participation5percent,
+                totalquiz,
+                perfectquizscore,
+                quiz15percent,
+                totalactivityproject,
+                perfectactivityprojectscore,
+                activityproject45percent,
+                totalexam,
+                perfectexamscore,
+                exam30percent,
+                finalcomputedgrade,
+                transmutedgrade,
+                created: new Date(),
+                updated: new Date()
             });
-
             return newComputedGrade;
         }
     } catch (error) {
@@ -715,11 +670,97 @@ async function computeGrade(studentgradeid, term) {
     }
 }
 
+async function computeGradeMidterm(studentgradeid, classid) {
+    try {
+        // Fetch Prelim transmutedgrade
+        const prelimComputedGrade = await db.ComputedGradelist.findOne({
+            where: {
+                studentgradeid: studentgradeid,
+                term: 'Prelim'
+            },
+            attributes: ['transmutedgrade']
+        });
+
+        if (!prelimComputedGrade) {
+            throw new Error(`No Prelim grade found for studentgradeid ${studentgradeid}`);
+        }
+
+        const prelimTransmutedGrade = prelimComputedGrade.transmutedgrade;
+
+        // Compute Midterm grade
+        const midtermComputedGrade = await computeGrade(studentgradeid, 'Midterm');
+
+        if (!midtermComputedGrade) {
+            throw new Error(`No Midterm grade found for studentgradeid ${studentgradeid}`);
+        }
+
+        const midtermTransmutedGrade = midtermComputedGrade.transmutedgrade;
+
+        // Calculate final transmutedgrade based on 1/3 Prelim and 2/3 Midterm
+        const updatedTransmutedGrade = parseFloat(((1/3 * prelimTransmutedGrade) + (2/3 * midtermTransmutedGrade)).toFixed(2));
+
+        // Update ComputedGradelist for Midterm with final transmuted grade
+        midtermComputedGrade.transmutedgrade = updatedTransmutedGrade;
+        await midtermComputedGrade.save();
+
+        return {
+            message: `Midterm grade updated successfully with combined Prelim and Midterm grades.`,
+            updatedTransmutedGrade: updatedTransmutedGrade
+        };
+
+    } catch (error) {
+        console.error('Error computing Midterm grade:', error);
+        throw error;
+    }
+}
+
+
+async function computeGradeFinal(studentgradeid, classid) {
+    try {
+        // Fetch the Midterm transmuted grade
+        const midtermGrade = await db.ComputedGradelist.findOne({
+            where: {
+                studentgradeid: studentgradeid,
+                term: 'Midterm'
+            },
+            attributes: ['transmutedgrade']
+        });
+
+        if (!midtermGrade) {
+            throw new Error(`No midterm grade found for studentgradeid ${studentgradeid}.`);
+        }
+
+        // Fetch the Final term grades including transmuted grade
+        const finalGrade = await computeGrade(studentgradeid, 'Final');
+
+        if (!finalGrade) {
+            throw new Error(`No final grade found for studentgradeid ${studentgradeid}.`);
+        }
+
+        // Compute final grade using 1/3 of Midterm and 2/3 of Final
+        const finalTransmutedGrade = parseFloat(((1/3 * midtermGrade.transmutedgrade) + (2/3 * finalGrade.transmutedgrade)).toFixed(2));
+
+        // Update the final grade in the 'Final' term entry
+        finalGrade.transmutedgrade = finalTransmutedGrade;
+
+        // Save the updated final grade
+        await finalGrade.save();
+
+        return {
+            message: `Final grade computed successfully for studentgradeid ${studentgradeid}.`,
+            finalTransmutedGrade: finalTransmutedGrade
+        };
+    } catch (error) {
+        console.error('Error computing final grade:', error);
+        throw error;
+    }
+}
 
 
 
 
-async function getStudentsInClassAttendancePrelim(classid) {
+
+async function getGradesPrelim(classid) {
     try {
         // Validate that the class exists
         const classRecord = await db.Classlist.findOne({
@@ -764,7 +805,7 @@ async function getStudentsInClassAttendancePrelim(classid) {
                 },
                 {
                     model: db.ComputedGradelist, 
-                    attributes: ['studentgradeid', 'term', 'totalattendance', 'perfectattendancescore'],
+                    attributes: ['studentgradeid', 'term', 'totalattendance', 'perfectattendancescore','attendance5percent', 'totalparticipation','perfectparticipationscore','participation5percent','totalquiz', 'perfectquizscore','quiz15percent','totalactivityproject', 'perfectactivityprojectscore','activityproject45percent', 'totalexam', 'perfectexamscore','exam30percent', 'finalcomputedgrade','transmutedgrade'],
                     where: { term: 'Prelim' },
                     required: false
                 }
@@ -783,5 +824,131 @@ async function getStudentsInClassAttendancePrelim(classid) {
 }
 
 
+async function getGradesMidterm(classid) {
+    try {
+        // Validate that the class exists
+        const classRecord = await db.Classlist.findOne({
+            where: { classid: classid }
+        });
 
+        if (!classRecord) {
+            throw new Error(`Class with id ${classid} not found.`);
+        }
 
+        // Fetch all students associated with the class
+        const students = await db.Studentlist.findAll({
+            where: { classid: classid },
+            include: [
+                {
+                    model: db.Account, 
+                    as: 'studentinfo', 
+                    attributes: ['firstName', 'lastName', 'id'] 
+                }
+            ]
+        });
+
+        if (students.length === 0) {
+            return {
+                message: `No students found for class with id ${classid}.`
+            };
+        }
+
+        // Compute attendance grades for each student
+     // Compute Midterm grades for each student
+     for (const student of students) {
+        await computeGrade(student.studentgradeid, 'Midterm'); // Compute Midterm grades first
+        await computeGradeMidterm(student.studentgradeid, classid); // Combine Prelim and Midterm grades
+    }
+
+        // Refetch students with the updated ComputedGradelist
+        const updatedStudents = await db.Studentlist.findAll({
+            where: { classid: classid },
+            include: [
+                {
+                    model: db.Account,
+                    as: 'studentinfo',
+                    attributes: ['firstName', 'lastName', 'id']
+                },
+                {
+                    model: db.ComputedGradelist, 
+                    attributes: ['studentgradeid', 'term', 'totalattendance', 'perfectattendancescore','attendance5percent', 'totalparticipation','perfectparticipationscore','participation5percent','totalquiz', 'perfectquizscore','quiz15percent','totalactivityproject', 'perfectactivityprojectscore','activityproject45percent', 'totalexam', 'perfectexamscore','exam30percent', 'finalcomputedgrade','transmutedgrade'],
+                    where: { term: 'Midterm' },
+                    required: false
+                }
+            ]
+        });
+
+        return {
+            message: `Students and computed grades retrieved successfully for class with id ${classid}.`,
+            students: updatedStudents.map(student => student.get({ plain: true }))
+        };
+
+    } catch (error) {
+        console.error('Error retrieving students for class:', error); 
+        throw new Error('Failed to retrieve students for class.'); 
+    }
+}
+
+async function getGradesFinal(classid) {
+    try {
+        // Validate that the class exists
+        const classRecord = await db.Classlist.findOne({
+            where: { classid: classid }
+        });
+
+        if (!classRecord) {
+            throw new Error(`Class with id ${classid} not found.`);
+        }
+
+        // Fetch all students associated with the class
+        const students = await db.Studentlist.findAll({
+            where: { classid: classid },
+            include: [
+                {
+                    model: db.Account, 
+                    as: 'studentinfo', 
+                    attributes: ['firstName', 'lastName', 'id'] 
+                }
+            ]
+        });
+
+        if (students.length === 0) {
+            return {
+                message: `No students found for class with id ${classid}.`
+            };
+        }
+
+        // Compute attendance grades for each student
+        for (const student of students) {
+            await computeGrade(student.studentgradeid, 'Final'); 
+            await computeGradeFinal(student.studentgradeid, classid);
+        }
+
+        // Refetch students with the updated ComputedGradelist
+        const updatedStudents = await db.Studentlist.findAll({
+            where: { classid: classid },
+            include: [
+                {
+                    model: db.Account,
+                    as: 'studentinfo',
+                    attributes: ['firstName', 'lastName', 'id']
+                },
+                {
+                    model: db.ComputedGradelist, 
+                    attributes: ['studentgradeid', 'term', 'totalattendance', 'perfectattendancescore','attendance5percent', 'totalparticipation','perfectparticipationscore','participation5percent','totalquiz', 'perfectquizscore','quiz15percent','totalactivityproject', 'perfectactivityprojectscore','activityproject45percent', 'totalexam', 'perfectexamscore','exam30percent', 'finalcomputedgrade','transmutedgrade'],
+                    where: { term: 'Final' },
+                    required: false
+                }
+            ]
+        });
+
+        return {
+            message: `Students and computed grades retrieved successfully for class with id ${classid}.`,
+            students: updatedStudents.map(student => student.get({ plain: true }))
+        };
+
+    } catch (error) {
+        console.error('Error retrieving students for class:', error); 
+        throw new Error('Failed to retrieve students for class.'); 
+    }
+}

@@ -59,7 +59,8 @@ async function initialize() {
     await db.Studentlist.sync();
     await db.Gradelist.sync();
     await db.Scorelist.sync();
-      // await db.Account.sync({ alter: true }); 
+    await db.ComputedGradelist.sync();
+    // await db.Account.sync({ alter: true }); 
     // await db.Yearlist.sync({ alter: true });
     // await db.Semesterlist.sync({ alter: true });
     // await db.Subjectlist.sync({ alter: true });
@@ -67,6 +68,7 @@ async function initialize() {
     // await db.Studentlist.sync({ alter: true });
     // await db.Gradelist.sync({ alter: true });
     // await db.Scorelist.sync({ alter: true });
+    // await db.ComputedGradelist.sync({ alter: true });
     // Now add the relationships
     addRelationships();
 

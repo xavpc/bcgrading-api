@@ -20,8 +20,9 @@ router.post('/addattendance',  newAttendanceSchema,addNewAttendance);
 router.post('/addexam',  newExamSchema,addNewExam);
 router.put('/updateattendance/:scoreid', updateAttendance,AttendanceSchema);
 router.put('/updatescore/:scoreid', updateScore,ScoreSchema);
-router.get('/gradesofstudents/:classid', getStudentsInClassAttendancePrelim);
-
+router.get('/gradesofstudentsprelim/:classid', getGradesPrelim);
+router.get('/gradesofstudentsmidterm/:classid', getGradesMidterm);
+router.get('/gradesofstudentsfinal/:classid', getGradesFinal);
 
 router.get('/Prelim/Attendance/:classid', getPrelimAttendance);
 
@@ -294,9 +295,29 @@ function ScoreSchema(req, res, next) {
     validateRequest(req, next, schema);
 }
 
-function getStudentsInClassAttendancePrelim(req, res, next) {
+function getGradesPrelim(req, res, next) {
     // Directly use req.params.classid without destructuring
-    Service.getStudentsInClassAttendancePrelim(req.params.classid)
+    Service.getGradesPrelim(req.params.classid)
+        .then(result => res.json({
+            message: result.message,
+            students: result.students
+        }))
+        .catch(next);
+}
+
+function getGradesMidterm(req, res, next) {
+    // Directly use req.params.classid without destructuring
+    Service.getGradesMidterm(req.params.classid)
+        .then(result => res.json({
+            message: result.message,
+            students: result.students
+        }))
+        .catch(next);
+}
+
+function getGradesFinal(req, res, next) {
+    // Directly use req.params.classid without destructuring
+    Service.getGradesFinal(req.params.classid)
         .then(result => res.json({
             message: result.message,
             students: result.students
