@@ -32,7 +32,9 @@ function createSchema(req, res, next) {
         lastName: Joi.string().required(),
         username: Joi.string().required(),
         password: Joi.string().min(6).required(),
-        confirmPassword: Joi.string().valid(Joi.ref('password')).required(),
+        confirmPassword: Joi.string().valid(Joi.ref('password')).required().messages({
+            'any.only': 'Passwords must match.' // Custom message
+        }),
         role: Joi.string().valid(Role.Admin, Role.Registrar, Role.Student,Role.Teacher).required()
     });
     validateRequest(req, next, schema);
@@ -102,7 +104,10 @@ function passwordSchema(req, res, next) {
     const schema = Joi.object({
 
         password: Joi.string().min(6).empty(''),
-        confirmPassword: Joi.string().valid(Joi.ref('password')).empty('')
+        
+        confirmPassword: Joi.string().valid(Joi.ref('password')).empty('').messages({
+            'any.only': 'Confirm password does not match password.' // Custom error message
+        })
     }).with('password', 'confirmPassword');
     validateRequest(req, next, schema);
 }

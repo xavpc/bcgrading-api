@@ -25,6 +25,19 @@ async function AdminCreateAccount(params) {
         throw 'username "' + params.username + '" is already registered';
     }
 
+
+    // Validate if the combination of firstName and lastName already exists
+    const existingAccount = await db.Account.findOne({
+        where: {
+            firstName: params.firstName,
+            lastName: params.lastName
+        }
+    });
+
+    if (existingAccount) {
+        throw `The Registered Name ${params.firstName} ${params.lastName} already exists.`;
+    }
+
     const account = new db.Account(params);
    
 
@@ -109,7 +122,23 @@ async function AdmindGetAccountById(id) {
 
 
 async function AdminUpdateAccount(id, params) {
+
+
+    
+
     const account = await db.Account.findByPk(id);
+
+    const existingAccount = await db.Account.findOne({
+        where: {
+            firstName: params.firstName,
+            lastName: params.lastName
+        }
+    });
+
+    if (existingAccount) {
+        throw `The Registered Name ${params.firstName} ${params.lastName} already exists.`;
+    }
+
 
     // validate (if email was changed)
     if (params.username && account.username !== params.username && await db.Account.findOne({ where: { username: params.username } })) {
