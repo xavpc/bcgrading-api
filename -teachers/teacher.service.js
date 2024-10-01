@@ -670,42 +670,47 @@ const finalcomputedgrade = parseFloat((attendance5percent + participation5percen
     }
 }
 
-async function computeGradeMidterm(studentgradeid, classid) {
+async function computeGradeMidterm(studentgradeid , classid) {
     try {
-        // Fetch Prelim transmutedgrade
+        // Fetch Prelim finalcomputedgrade
         const prelimComputedGrade = await db.ComputedGradelist.findOne({
             where: {
                 studentgradeid: studentgradeid,
                 term: 'Prelim'
             },
-            attributes: ['transmutedgrade']
+            attributes: ['finalcomputedgrade']
         });
 
         if (!prelimComputedGrade) {
             throw new Error(`No Prelim grade found for studentgradeid ${studentgradeid}`);
         }
 
-        const prelimTransmutedGrade = prelimComputedGrade.transmutedgrade;
+        const prelimFinalComputedGrade = prelimComputedGrade.finalcomputedgrade;
 
-        // Compute Midterm grade
+        // Compute Midterm grade (this will calculate and return the ComputedGradelist for Midterm)
         const midtermComputedGrade = await computeGrade(studentgradeid, 'Midterm');
 
         if (!midtermComputedGrade) {
             throw new Error(`No Midterm grade found for studentgradeid ${studentgradeid}`);
         }
 
-        const midtermTransmutedGrade = midtermComputedGrade.transmutedgrade;
+        const midtermFinalComputedGrade = midtermComputedGrade.finalcomputedgrade;
 
-        // Calculate final transmutedgrade based on 1/3 Prelim and 2/3 Midterm
-        const updatedTransmutedGrade = parseFloat(((1/3 * prelimTransmutedGrade) + (2/3 * midtermTransmutedGrade)).toFixed(2));
+        // Calculate updated finalcomputedgrade based on 1/3 Prelim and 2/3 Midterm
+        const updatedFinalComputedGrade = parseFloat(((1/3 * prelimFinalComputedGrade) + (2/3 * midtermFinalComputedGrade)).toFixed(2));
 
-        // Update ComputedGradelist for Midterm with final transmuted grade
-        midtermComputedGrade.transmutedgrade = updatedTransmutedGrade;
+        // Compute transmutedgrade again based on the updated finalcomputedgrade
+        const transmutedgrade = parseFloat((Math.round((5 - (4 * updatedFinalComputedGrade) / 99) * 10) / 10).toFixed(1));
+
+        // Update ComputedGradelist for Midterm with the new finalcomputedgrade and transmutedgrade
+        midtermComputedGrade.finalcomputedgrade = updatedFinalComputedGrade;
+        midtermComputedGrade.transmutedgrade = transmutedgrade;
         await midtermComputedGrade.save();
 
         return {
             message: `Midterm grade updated successfully with combined Prelim and Midterm grades.`,
-            updatedTransmutedGrade: updatedTransmutedGrade
+            updatedFinalComputedGrade: updatedFinalComputedGrade,
+            updatedTransmutedGrade: transmutedgrade
         };
 
     } catch (error) {
@@ -715,46 +720,56 @@ async function computeGradeMidterm(studentgradeid, classid) {
 }
 
 
-async function computeGradeFinal(studentgradeid, classid) {
+
+async function computeGradeFinal(studentgradeid , classid) {
     try {
-        // Fetch the Midterm transmuted grade
-        const midtermGrade = await db.ComputedGradelist.findOne({
+        // Fetch Midterm finalcomputedgrade
+        const midtermComputedGrade = await db.ComputedGradelist.findOne({
             where: {
                 studentgradeid: studentgradeid,
                 term: 'Midterm'
             },
-            attributes: ['transmutedgrade']
+            attributes: ['finalcomputedgrade']
         });
 
-        if (!midtermGrade) {
-            throw new Error(`No midterm grade found for studentgradeid ${studentgradeid}.`);
+        if (!midtermComputedGrade) {
+            throw new Error(`No Midterm grade found for studentgradeid ${studentgradeid}`);
         }
 
-        // Fetch the Final term grades including transmuted grade
-        const finalGrade = await computeGrade(studentgradeid, 'Final');
+        const midtermFinalComputedGrade = midtermComputedGrade.finalcomputedgrade;
 
-        if (!finalGrade) {
-            throw new Error(`No final grade found for studentgradeid ${studentgradeid}.`);
+        // Compute Final grade (this will calculate and return the ComputedGradelist for Final)
+        const finalComputedGrade = await computeGrade(studentgradeid, 'Final');
+
+        if (!finalComputedGrade) {
+            throw new Error(`No Final grade found for studentgradeid ${studentgradeid}`);
         }
 
-        // Compute final grade using 1/3 of Midterm and 2/3 of Final
-        const finalTransmutedGrade = parseFloat(((1/3 * midtermGrade.transmutedgrade) + (2/3 * finalGrade.transmutedgrade)).toFixed(2));
+        const finalTermFinalComputedGrade = finalComputedGrade.finalcomputedgrade;
 
-        // Update the final grade in the 'Final' term entry
-        finalGrade.transmutedgrade = finalTransmutedGrade;
+        // Calculate updated finalcomputedgrade based on 1/3 Midterm and 2/3 Final
+        const updatedFinalComputedGrade = parseFloat(((1/3 * midtermFinalComputedGrade) + (2/3 * finalTermFinalComputedGrade)).toFixed(2));
 
-        // Save the updated final grade
-        await finalGrade.save();
+        // Compute transmutedgrade again based on the updated finalcomputedgrade
+        const transmutedgrade = parseFloat((Math.round((5 - (4 * updatedFinalComputedGrade) / 99) * 10) / 10).toFixed(1));
+
+        // Update ComputedGradelist for Final with the new finalcomputedgrade and transmutedgrade
+        finalComputedGrade.finalcomputedgrade = updatedFinalComputedGrade;
+        finalComputedGrade.transmutedgrade = transmutedgrade;
+        await finalComputedGrade.save();
 
         return {
-            message: `Final grade computed successfully for studentgradeid ${studentgradeid}.`,
-            finalTransmutedGrade: finalTransmutedGrade
+            message: `Final grade updated successfully with combined Midterm and Final grades.`,
+            updatedFinalComputedGrade: updatedFinalComputedGrade,
+            updatedTransmutedGrade: transmutedgrade
         };
+
     } catch (error) {
-        console.error('Error computing final grade:', error);
+        console.error('Error computing Final grade:', error);
         throw error;
     }
 }
+
 
 
 
