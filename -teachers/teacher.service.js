@@ -307,7 +307,8 @@ async function getPrelimAttendance(classid) {
             classid: classid,
             term: 'Prelim',
             scoretype: 'Attendance'  
-        }
+        },
+        order: [['attendanceDate', 'ASC']]
     });
 }
 async function getPrelimParticipation(classid) {
@@ -358,7 +359,8 @@ async function getMidtermAttendance(classid) {
             classid: classid,
             term: 'Midterm',
             scoretype: 'Attendance'  
-        }
+        },
+        order: [['attendanceDate', 'ASC']]
     });
 }
 async function getMidtermParticipation(classid) {
@@ -408,7 +410,8 @@ async function getFinalAttendance(classid) {
             classid: classid,
             term: 'Final',
             scoretype: 'Attendance'  
-        }
+        },
+        order: [['attendanceDate', 'ASC']]
     });
 }
 async function getFinalParticipation(classid) {
