@@ -1,0 +1,20 @@
+{
+    "database": {
+      "host": "153.92.15.26",
+      "port": 3306,
+      "user": "u286307273_grading",
+      "password": "&Of1T$F[iOm0",
+      "database": "u286307273_grading"
+    },
+    "secret": "xav123456890",
+    "emailFrom": "info@node-mysql-signup-verification-api.com",
+    "smtpOptions": {
+      "host": "smtp.ethereal.email",
+      "port": 587,
+      "auth": {
+        "user": "gladyce12@ethereal.email",
+        "pass": "C6en9GS7aRTau8kwf9"
+      }
+    }
+  }
+  
