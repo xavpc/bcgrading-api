@@ -21,5 +21,5 @@ function model(sequelize) {
         timestamps: false,
     };
 
-    return sequelize.define('Semesterlist', attributes, options);  // Use 'SemesterList' as the model name
+    return sequelize.define('semesterlist', attributes, options);  // Use 'SemesterList' as the model name
 }

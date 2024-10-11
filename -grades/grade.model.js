@@ -34,6 +34,6 @@ function model(sequelize) {
         
         timestamps: false
     };
-    return sequelize.define('Gradelist', attributes, options); 
+    return sequelize.define('gradelist', attributes, options); 
 }
 

@@ -22,5 +22,5 @@ function model(sequelize) {
            
     };
 
-    return sequelize.define('Subjectlist', attributes, options);
+    return sequelize.define('subjectlist', attributes, options);
 }

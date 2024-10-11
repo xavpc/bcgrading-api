@@ -19,6 +19,6 @@ function model(sequelize) {
         timestamps: false
     };
 
-    return sequelize.define('Yearlist', attributes, options); 
+    return sequelize.define('yearlist', attributes, options); 
 }
 

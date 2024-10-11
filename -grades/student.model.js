@@ -33,6 +33,6 @@ function model(sequelize) {
         timestamps: false,
         
     };
-    return sequelize.define('Studentlist', attributes, options); 
+    return sequelize.define('studentlist', attributes, options); 
 }
 

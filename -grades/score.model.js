@@ -43,6 +43,6 @@ function model(sequelize) {
         
         timestamps: false
     };
-    return sequelize.define('Scorelist', attributes, options); 
+    return sequelize.define('scorelist', attributes, options); 
 }
 

@@ -50,9 +50,9 @@ function model(sequelize) {
     };
 
     const options = {
-        // disable default timestamp fields (createdAt and updatedAt)
+        // disable default timestamp fields (createdAt and updatedAt) 
         timestamps: false      
     };
 
-    return sequelize.define('Classlist', attributes, options);
+    return sequelize.define('classlist', attributes, options);
 }

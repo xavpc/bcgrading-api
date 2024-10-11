@@ -59,7 +59,7 @@ function model(sequelize) {
         
         timestamps: false
     };
-    return sequelize.define('ComputedGradelist', attributes, options); 
+    return sequelize.define('computedgradelist', attributes, options); 
 }
 
 

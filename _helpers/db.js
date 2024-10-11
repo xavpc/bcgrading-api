@@ -16,9 +16,9 @@ async function initialize() {
     await connection.query(`CREATE DATABASE IF NOT EXISTS \`${database}\`;`);
 
     // connect to db
-    const sequelize = new Sequelize(database, user, password, { dialect: 'mysql' });
+    const sequelize = new Sequelize(database, user, password, { dialect: 'mysql', host: host });
 
-     // Assign Sequelize instance to the db object
+     // Assign Sequelize instance to the db object 
      db.Sequelize = Sequelize;
      db.sequelize = sequelize;
      
@@ -51,32 +51,32 @@ async function initialize() {
     db.ComputedGradelist = require('../-grades/computedgrade.model.js')(sequelize);
 
     // sync all models with database first para di mag error     // await sequelize.sync();
-    await db.Account.sync(); 
-    await db.Yearlist.sync();
-    await db.Semesterlist.sync();
-    await db.Subjectlist.sync();
-    await db.Classlist.sync();
-    await db.Studentlist.sync();
-    await db.Gradelist.sync();
-    await db.Scorelist.sync();
-    await db.ComputedGradelist.sync();
-    // await db.Account.sync({ alter: true }); 
-    // await db.Yearlist.sync({ alter: true });
-    // await db.Semesterlist.sync({ alter: true });
-    // await db.Subjectlist.sync({ alter: true });
-    // await db.Classlist.sync({ alter: true });
-    // await db.Studentlist.sync({ alter: true });
-    // await db.Gradelist.sync({ alter: true });
-    // await db.Scorelist.sync({ alter: true });
-    // await db.ComputedGradelist.sync({ alter: true });
+    // await db.Account.sync(); 
+    // await db.Yearlist.sync();
+    // await db.Semesterlist.sync();
+    // await db.Subjectlist.sync();
+    // await db.Classlist.sync();
+    // await db.Studentlist.sync();
+    // await db.Gradelist.sync();
+    // await db.Scorelist.sync();
+    // await db.ComputedGradelist.sync();
+    await db.Account.sync({ alter: true }); 
+    await db.Yearlist.sync({ alter: true });
+    await db.Semesterlist.sync({ alter: true });
+    await db.Subjectlist.sync({ alter: true });
+    await db.Classlist.sync({ alter: true });
+    await db.Studentlist.sync({ alter: true });
+    await db.Gradelist.sync({ alter: true });
+    await db.Scorelist.sync({ alter: true });
+    await db.ComputedGradelist.sync({ alter: true });
     // Now add the relationships
     addRelationships();
 
     // Sync again to apply the relationships kani kuhaon na ug mana ang system
-    // await sequelize.sync({ alter: true });
+    await sequelize.sync({ alter: true });
 
 
-    await sequelize.sync(); //kani na gamiton kung mana system yaa
+    // await sequelize.sync(); //kani na gamiton kung mana system yaa
 
     await initializeData(db);    //i comment out ni after doy kung mana kag npm start kausa
 
@@ -91,34 +91,37 @@ function addRelationships() {
 
 
     // Define relationships between models
-    db.Yearlist.belongsTo(db.Classlist, { foreignKey: 'year' });
-    db.Classlist.hasMany(db.Yearlist, { foreignKey: 'year' });
+    // db.Yearlist.belongsTo(db.Classlist, { foreignKey: 'year' });
+    // db.Classlist.hasMany(db.Yearlist, { foreignKey: 'year' });
 
-    db.Semesterlist.belongsTo(db.Classlist, { foreignKey: 'semester' });
-    db.Classlist.hasMany(db.Semesterlist, { foreignKey: 'semester' });
+    // db.Semesterlist.belongsTo(db.Classlist, { foreignKey: 'semester' });
+    // db.Classlist.hasMany(db.Semesterlist, { foreignKey: 'semester' });
 
     // db.Classlist.hasOne(db.Subjectlist, { foreignKey: 'subjectcode' });
     // db.Subjectlist.belongsTo(db.Classlist, { foreignKey: 'subjectcode' }); 
 
-    db.Classlist.belongsTo(db.Subjectlist, { foreignKey: 'subjectcode', as: 'Subjectitle' });
-    db.Subjectlist.hasMany(db.Classlist, { foreignKey: 'subjectcode' });
+    db.Classlist.belongsTo(db.Yearlist, { foreignKey: 'year' , constraints: false  });
+db.Classlist.belongsTo(db.Semesterlist, { foreignKey: 'semester' , constraints: false  });
 
-    db.Classlist.belongsTo(db.Account, { foreignKey: 'teacherid', as: 'TeacherInfo' });
-    db.Account.hasMany(db.Classlist, { foreignKey: 'teacherid' });
+    db.Classlist.belongsTo(db.Subjectlist, { foreignKey: 'subjectcode', constraints: false,  as: 'Subjectitle' });
+    // db.Subjectlist.hasMany(db.Classlist, { foreignKey: 'subjectcode' });
+
+    db.Classlist.belongsTo(db.Account, { foreignKey: 'teacherid', as: 'TeacherInfo' , constraints: false  });
+    // db.Account.hasMany(db.Classlist, { foreignKey: 'teacherid' });
 
 
-    db.Account.hasMany(db.Studentlist, { foreignKey: 'studentid', as: 'studentinfo' });
-    db.Studentlist.belongsTo(db.Account, { foreignKey: 'studentid', as: 'studentinfo' });
+    db.Account.hasMany(db.Studentlist, { foreignKey: 'studentid', as: 'studentinfo'  });
+    db.Studentlist.belongsTo(db.Account, { foreignKey: 'studentid', as: 'studentinfo' , constraints: false  });
     
 
     db.Studentlist.hasMany(db.Scorelist, { foreignKey: 'studentgradeid' });
-    db.Scorelist.belongsTo(db.Studentlist, { foreignKey: 'studentgradeid' });
+    db.Scorelist.belongsTo(db.Studentlist, { foreignKey: 'studentgradeid' , constraints: false  });
 
     
     db.Gradelist.hasMany(db.Scorelist, { foreignKey: 'gradeid' });
-    db.Scorelist.belongsTo(db.Gradelist, { foreignKey: 'gradeid' });
+    db.Scorelist.belongsTo(db.Gradelist, { foreignKey: 'gradeid' , constraints: false });
 
-    db.ComputedGradelist.belongsTo(db.Studentlist, { foreignKey: 'studentgradeid' });
+    db.ComputedGradelist.belongsTo(db.Studentlist, { foreignKey: 'studentgradeid' , constraints: false  });
     db.Studentlist.hasMany(db.ComputedGradelist, { foreignKey: 'studentgradeid' });
 
 }
