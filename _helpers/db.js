@@ -100,28 +100,28 @@ function addRelationships() {
     // db.Classlist.hasOne(db.Subjectlist, { foreignKey: 'subjectcode' });
     // db.Subjectlist.belongsTo(db.Classlist, { foreignKey: 'subjectcode' }); 
 
-    db.Classlist.belongsTo(db.Yearlist, { foreignKey: 'year' , constraints: false  });
-db.Classlist.belongsTo(db.Semesterlist, { foreignKey: 'semester' , constraints: false  });
+    db.Classlist.belongsTo(db.Yearlist, { foreignKey: 'year' ,  });
+db.Classlist.belongsTo(db.Semesterlist, { foreignKey: 'semester' ,  });
 
     db.Classlist.belongsTo(db.Subjectlist, { foreignKey: 'subjectcode', constraints: false,  as: 'Subjectitle' });
     // db.Subjectlist.hasMany(db.Classlist, { foreignKey: 'subjectcode' });
 
-    db.Classlist.belongsTo(db.Account, { foreignKey: 'teacherid', as: 'TeacherInfo' , constraints: false  });
+    db.Classlist.belongsTo(db.Account, { foreignKey: 'teacherid', as: 'TeacherInfo' ,  });
     // db.Account.hasMany(db.Classlist, { foreignKey: 'teacherid' });
 
 
     db.Account.hasMany(db.Studentlist, { foreignKey: 'studentid', as: 'studentinfo'  });
-    db.Studentlist.belongsTo(db.Account, { foreignKey: 'studentid', as: 'studentinfo' , constraints: false  });
+    db.Studentlist.belongsTo(db.Account, { foreignKey: 'studentid', as: 'studentinfo' ,  });
     
 
     db.Studentlist.hasMany(db.Scorelist, { foreignKey: 'studentgradeid' });
-    db.Scorelist.belongsTo(db.Studentlist, { foreignKey: 'studentgradeid' , constraints: false  });
+    db.Scorelist.belongsTo(db.Studentlist, { foreignKey: 'studentgradeid' ,  });
 
     
     db.Gradelist.hasMany(db.Scorelist, { foreignKey: 'gradeid' });
-    db.Scorelist.belongsTo(db.Gradelist, { foreignKey: 'gradeid' , constraints: false });
+    db.Scorelist.belongsTo(db.Gradelist, { foreignKey: 'gradeid' , });
 
-    db.ComputedGradelist.belongsTo(db.Studentlist, { foreignKey: 'studentgradeid' , constraints: false  });
+    db.ComputedGradelist.belongsTo(db.Studentlist, { foreignKey: 'studentgradeid' ,  });
     db.Studentlist.hasMany(db.ComputedGradelist, { foreignKey: 'studentgradeid' });
 
 }
