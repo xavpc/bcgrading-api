@@ -581,20 +581,22 @@ async function computeGrade(studentgradeid, term) {
         }
 
         // Compute total scores and perfect scores for each category
-        const totalattendance = attendanceRecords.reduce((acc, record) => acc + record.score, 0);
-        const perfectattendancescore = attendanceRecords.reduce((acc, record) => acc + record.perfectscore, 0);
+        const totalattendance = attendanceRecords.length > 0 ? attendanceRecords.reduce((acc, record) => acc + record.score, 0) : 0;
+        const perfectattendancescore = attendanceRecords.length > 0 ? attendanceRecords.reduce((acc, record) => acc + record.perfectscore, 0) : 0;
+        
 
-        const totalparticipation = participationRecords.reduce((acc, record) => acc + record.score, 0);
-        const perfectparticipationscore = participationRecords.reduce((acc, record) => acc + record.perfectscore, 0);
-
-        const totalquiz = quizRecords.reduce((acc, record) => acc + record.score, 0);
-        const perfectquizscore = quizRecords.reduce((acc, record) => acc + record.perfectscore, 0);
-
-        const totalactivityproject = activityprojectRecords.reduce((acc, record) => acc + record.score, 0);
-        const perfectactivityprojectscore = activityprojectRecords.reduce((acc, record) => acc + record.perfectscore, 0);
-
-        const totalexam = examRecords.reduce((acc, record) => acc + record.score, 0);
-        const perfectexamscore = examRecords.reduce((acc, record) => acc + record.perfectscore, 0);
+        const totalparticipation = participationRecords.length > 0 ? participationRecords.reduce((acc, record) => acc + record.score, 0) : 0;
+        const perfectparticipationscore = participationRecords.length > 0 ? participationRecords.reduce((acc, record) => acc + record.perfectscore, 0) : 0;
+        
+        const totalquiz = quizRecords.length > 0 ? quizRecords.reduce((acc, record) => acc + record.score, 0) : 0;
+        const perfectquizscore = quizRecords.length > 0 ? quizRecords.reduce((acc, record) => acc + record.perfectscore, 0) : 0;
+        
+        const totalactivityproject = activityprojectRecords.length > 0 ? activityprojectRecords.reduce((acc, record) => acc + record.score, 0) : 0;
+        const perfectactivityprojectscore = activityprojectRecords.length > 0 ? activityprojectRecords.reduce((acc, record) => acc + record.perfectscore, 0) : 0;
+        
+        const totalexam = examRecords.length > 0 ? examRecords.reduce((acc, record) => acc + record.score, 0) : 0;
+        const perfectexamscore = examRecords.length > 0 ? examRecords.reduce((acc, record) => acc + record.perfectscore, 0) : 0;
+        
 
 // Safely calculate percentages to avoid division by 0 or null, and limit to 2 decimal places
 const attendance5percent = perfectattendancescore > 0 ? parseFloat(((totalattendance / perfectattendancescore) * 5).toFixed(2)) : 0;
