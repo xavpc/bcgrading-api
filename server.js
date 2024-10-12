@@ -15,7 +15,7 @@ app.use(cookieParser());
 
 
 const allowedOrigins = [
-    "https://bcgrading.netlify.app/", // Production frontend
+    "https://bcgrading.netlify.app", // Production frontend
     "http://localhost:5173", // Development frontend
   ];
   
