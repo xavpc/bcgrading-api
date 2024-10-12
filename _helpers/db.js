@@ -60,23 +60,24 @@ async function initialize() {
     // await db.Gradelist.sync();
     // await db.Scorelist.sync();
     // await db.ComputedGradelist.sync();
-    // await db.Account.sync({ alter: true }); 
-    // await db.Yearlist.sync({ alter: true });
-    // await db.Semesterlist.sync({ alter: true });
-    // await db.Subjectlist.sync({ alter: true });
-    // await db.Classlist.sync({ alter: true });
-    // await db.Studentlist.sync({ alter: true });
-    // await db.Gradelist.sync({ alter: true });
-    // await db.Scorelist.sync({ alter: true });
-    // await db.ComputedGradelist.sync({ alter: true });
+    await db.Yearlist.sync({ alter: true });
+    await db.Semesterlist.sync({ alter: true });
+    await db.Subjectlist.sync({ alter: true });
+    await db.Account.sync({ alter: true });
+    await db.Classlist.sync({ alter: true });
+    await db.Studentlist.sync({ alter: true });
+    await db.Gradelist.sync({ alter: true });
+    await db.Scorelist.sync({ alter: true });
+    await db.ComputedGradelist.sync({ alter: true });
+    
     // Now add the relationships
     addRelationships();
 
     // Sync again to apply the relationships kani kuhaon na ug mana ang system
-    // await sequelize.sync({ alter: true });
+    await sequelize.sync({ alter: true });
 
    //kani na gamiton kung mana system yaa
-    await sequelize.sync();
+    // await sequelize.sync();
   
 
     await initializeData(db);    //i comment out ni after doy kung mana kag npm start kausa
@@ -91,38 +92,30 @@ function addRelationships() {
 
 
 
-    // Define relationships between models
-    // db.Yearlist.belongsTo(db.Classlist, { foreignKey: 'year' });
-    // db.Classlist.hasMany(db.Yearlist, { foreignKey: 'year' });
+      // Define relationships between models
+      db.Classlist.belongsTo(db.Yearlist, { foreignKey: 'year' });
+      db.Classlist.belongsTo(db.Semesterlist, { foreignKey: 'semester' });
+  
+  
+      db.Classlist.belongsTo(db.Subjectlist, { foreignKey: 'subjectcode', as: 'Subjectitle' });
 
-    // db.Semesterlist.belongsTo(db.Classlist, { foreignKey: 'semester' });
-    // db.Classlist.hasMany(db.Semesterlist, { foreignKey: 'semester' });
-
-    // db.Classlist.hasOne(db.Subjectlist, { foreignKey: 'subjectcode' });
-    // db.Subjectlist.belongsTo(db.Classlist, { foreignKey: 'subjectcode' }); 
-
-    db.Classlist.belongsTo(db.Yearlist, { foreignKey: 'year' ,  });
-db.Classlist.belongsTo(db.Semesterlist, { foreignKey: 'semester' ,  });
-
-    db.Classlist.belongsTo(db.Subjectlist, { foreignKey: 'subjectcode', constraints: false,  as: 'Subjectitle' });
-    // db.Subjectlist.hasMany(db.Classlist, { foreignKey: 'subjectcode' });
-
-    db.Classlist.belongsTo(db.Account, { foreignKey: 'teacherid', as: 'TeacherInfo' ,  });
-    // db.Account.hasMany(db.Classlist, { foreignKey: 'teacherid' });
-
-
-    db.Account.hasMany(db.Studentlist, { foreignKey: 'studentid', as: 'studentinfo'  });
-    db.Studentlist.belongsTo(db.Account, { foreignKey: 'studentid', as: 'studentinfo' ,  });
-    
-
-    db.Studentlist.hasMany(db.Scorelist, { foreignKey: 'studentgradeid' });
-    db.Scorelist.belongsTo(db.Studentlist, { foreignKey: 'studentgradeid' ,  });
-
-    
-    db.Gradelist.hasMany(db.Scorelist, { foreignKey: 'gradeid' });
-    db.Scorelist.belongsTo(db.Gradelist, { foreignKey: 'gradeid' , });
-
-    db.ComputedGradelist.belongsTo(db.Studentlist, { foreignKey: 'studentgradeid' ,  });
-    db.Studentlist.hasMany(db.ComputedGradelist, { foreignKey: 'studentgradeid' });
+  
+      db.Classlist.belongsTo(db.Account, { foreignKey: 'teacherid', as: 'TeacherInfo' });
+  
+  
+  
+      db.Account.hasMany(db.Studentlist, { foreignKey: 'studentid', as: 'studentinfo' });
+      db.Studentlist.belongsTo(db.Account, { foreignKey: 'studentid', as: 'studentinfo' });
+      
+  
+      db.Studentlist.hasMany(db.Scorelist, { foreignKey: 'studentgradeid' });
+      db.Scorelist.belongsTo(db.Studentlist, { foreignKey: 'studentgradeid' });
+  
+      
+      db.Gradelist.hasMany(db.Scorelist, { foreignKey: 'gradeid' });
+      db.Scorelist.belongsTo(db.Gradelist, { foreignKey: 'gradeid' });
+  
+      db.ComputedGradelist.belongsTo(db.Studentlist, { foreignKey: 'studentgradeid' });
+      db.Studentlist.hasMany(db.ComputedGradelist, { foreignKey: 'studentgradeid' });
 
 }
