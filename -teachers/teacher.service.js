@@ -548,7 +548,8 @@ async function computeGrade(studentgradeid, term) {
             },
             include: [{ model: db.Gradelist, attributes: ['classid'] }]
         });
-
+        console.log("Attendance Records:", attendanceRecords);
+        
         const participationRecords = await db.Scorelist.findAll({
             where: { studentgradeid: studentgradeid, scoretype: 'Participation', term: term },
             include: [{ model: db.Gradelist, attributes: ['classid'] }]

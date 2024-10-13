@@ -74,7 +74,7 @@ async function initialize() {
     addRelationships();
 
     // Sync again to apply the relationships kani kuhaon na ug mana ang system
-    await sequelize.sync({ alter: true });
+    await sequelize.sync({ alter: true }); 
 
    //kani na gamiton kung mana system yaa
     // await sequelize.sync();
