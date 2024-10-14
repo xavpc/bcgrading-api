@@ -50,6 +50,8 @@ async function initialize() {
 
     db.ComputedGradelist = require('../-grades/computedgrade.model.js')(sequelize);
 
+    db.ClassExternal = require("../-models/classlist_external.model.js")(sequelize);
+
     // sync all models with database first para di mag error     // await sequelize.sync();
     // await db.Account.sync(); 
     // await db.Yearlist.sync();
@@ -72,6 +74,10 @@ async function initialize() {
     
     // Now add the relationships
     addRelationships();
+
+    // ! Account --> Classlist External
+    db.Account.hasMany(db.ClassExternal, { foreignKey: 'id' });
+    db.ClassExternal.belongsTo(db.Account, { foreignKey: 'id' }); 
 
     // Sync again to apply the relationships kani kuhaon na ug mana ang system
     await sequelize.sync({ alter: true }); 

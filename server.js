@@ -41,6 +41,9 @@ app.use('/admin', require('./accounts/admins.controller'));
 app.use('/registrar', require('./-registrars/registrars.controller'));
 app.use('/teacher', require('./-teachers/teachers.controller'));
 
+// ! External
+app.use('/external', require("./external/externals.controller"));
+
 // global error handler
 app.use(errorHandler);
 
