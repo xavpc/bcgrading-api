@@ -1,3 +1,4 @@
+//classlist_external.model.js
 const {isSchema} = require("joi");
 const {DataTypes} = require("sequelize");
 
@@ -5,7 +6,7 @@ module.exports = model;
 
 function model(sequelize) {
   const attributes = {
-    class_id: {
+    classid: {
       type: DataTypes.INTEGER,
       primaryKey: true,
     },
@@ -26,7 +27,7 @@ function model(sequelize) {
     },
 
     // Teacher
-    employee_id: {
+    teacherid: {
       type: DataTypes.INTEGER,
       allowNull: false,
       references: {
@@ -52,7 +53,9 @@ function model(sequelize) {
 
   const options = {
     timestamps: true,
+    id: false, 
   };
 
   return sequelize.define("externalclasslist", attributes, options);
+  
 }

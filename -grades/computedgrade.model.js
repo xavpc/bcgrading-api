@@ -11,7 +11,7 @@ function model(sequelize) {
     classid:{type: DataTypes.INTEGER, allowNull: false, 
             
         references: {
-            model: 'classlists', 
+            model: 'externalclasslists', 
             key: 'classid' 
         }
     }, 
@@ -56,10 +56,10 @@ function model(sequelize) {
     }; 
 
     const options = {
-        
-        timestamps: false
+tableName: 'computedgradelists',
+timestamps: false
     };
-    return sequelize.define('computedgradelist', attributes, options); 
+    return sequelize.define('ComputedGradelist', attributes, options); 
 }
 
 

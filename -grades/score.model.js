@@ -40,9 +40,9 @@ function model(sequelize) {
     }; 
 
     const options = {
-        
+        tableName: 'scorelists',
         timestamps: false
     };
-    return sequelize.define('scorelist', attributes, options); 
+    return sequelize.define('Scorelist', attributes, options); 
 }
 

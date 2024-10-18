@@ -1,7 +1,7 @@
 // external.service.js
 
 const axios = require("axios"); // Use axios for HTTP requests
-const db = require("_helpers/db"); // Ensure db.ClassExternal is correctly loaded
+const db = require("_helpers/db"); // Ensure db.Classlist is correctly loaded
 const bcrypt = require("bcryptjs"); // Use bcrypt for hashing passwords
 
 const MISUrlClass =
@@ -29,25 +29,25 @@ async function FetchClasses() {
       `\nFetched ${fetchedClasses.length} classes from MISUrlClass\n`
     );
 
-    // Map fetched data to the db.ClassExternal model
+    // Map fetched data to the db.Classlist model
     const classesToInsert = fetchedClasses.map((classData) => ({
-      class_id: classData.class_id,
+      classid: classData.class_id,
       subjectcode: classData.subjectCode,
       semester: classData.semesterName,
       year: classData.schoolYear,
-      employee_id: classData.employee_id,
+      teacherid: classData.employee_id,
       schedule: classData.schedule,
       isActive: true, // Default to true
       isDeleted: false, // Default to false
     }));
 
-    // Insert the mapped data into db.ClassExternal (sequelize model)
-    const insertedClasses = await db.ClassExternal.bulkCreate(classesToInsert, {
+    // Insert the mapped data into db.Classlist (sequelize model)
+    const insertedClasses = await db.Classlist.bulkCreate(classesToInsert, {
       updateOnDuplicate: [
         "subjectcode",
         "semester",
         "year",
-        "employee_id",
+        "teacherid",
         "schedule",
         "isActive",
         "isDeleted",

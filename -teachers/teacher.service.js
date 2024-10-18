@@ -50,11 +50,12 @@ module.exports = {
 async function getAll(teacherid) {
     return await db.Classlist.findAll({
         where: { teacherid: teacherid },
-        include: [{
-            model: db.Subjectlist,
-            as: 'Subjectitle',
-            attributes: ['title'] // Include only the title attribute from Subjectlist
-        },
+        include: [
+        //     {
+        //     model: db.Subjectlist,
+        //     as: 'Subjectitle',
+        //     attributes: ['title'] // Include only the title attribute from Subjectlist
+        // },
         {
             model: db.Account,
             as: 'TeacherInfo',
@@ -83,12 +84,12 @@ async function getAllSubject(teacherid) {
         where: { teacherid: teacherid },
         attributes: ['subjectcode'],
         group: ['subjectcode'],
-        include: [{
-            model: db.Subjectlist,
-            as: 'Subjectitle',
-            attributes: ['title'],
-            group: ['title'],
-        }]
+        // include: [{
+        //     model: db.Subjectlist,
+        //     as: 'Subjectitle',
+        //     attributes: ['title'],
+        //     group: ['title'],
+        // }]
     });
 }
 
@@ -541,14 +542,14 @@ async function computeGrade(studentgradeid, term) {
     try {
         // Fetch attendance, participation, quiz, activity-project, exam records
         const attendanceRecords = await db.Scorelist.findAll({
-            where: {
-                studentgradeid: studentgradeid,
-                scoretype: 'Attendance',
-                term: term
-            },
-            include: [{ model: db.Gradelist, attributes: ['classid'] }]
+            where: { studentgradeid: studentgradeid, scoretype: 'Attendance',term: term },
+            include: [{ model: db.Gradelist,  attributes: ['classid'] }]
         });
         console.log("Attendance Records:", attendanceRecords);
+        attendanceRecords.forEach(record => {
+            console.log(`Scorelist ID: ${record.scoreid}, Gradelist:`, record.Gradelist);
+        });
+        
         
         const participationRecords = await db.Scorelist.findAll({
             where: { studentgradeid: studentgradeid, scoretype: 'Participation', term: term },
@@ -571,15 +572,16 @@ async function computeGrade(studentgradeid, term) {
         });
 
         // Find classid from any of the records
-        const classid = attendanceRecords[0]?.Gradelist?.classid ||
-                        participationRecords[0]?.Gradelist?.classid ||
-                        quizRecords[0]?.Gradelist?.classid ||
-                        activityprojectRecords[0]?.Gradelist?.classid ||
-                        examRecords[0]?.Gradelist?.classid;
+        const classid = (attendanceRecords.length > 0 && attendanceRecords[0].Gradelist?.classid) ||
+        (participationRecords.length > 0 && participationRecords[0].Gradelist?.classid) ||
+        (quizRecords.length > 0 && quizRecords[0].Gradelist?.classid) ||
+        (activityprojectRecords.length > 0 && activityprojectRecords[0].Gradelist?.classid) ||
+        (examRecords.length > 0 && examRecords[0].Gradelist?.classid);
 
-        if (!classid) {
-            throw new Error(`No classid found in the score records for studentgradeid ${studentgradeid}`);
-        }
+if (!classid) {
+throw new Error(`No classid found in the score records for studentgradeid ${studentgradeid}`);
+}
+
 
         // Compute total scores and perfect scores for each category
         const totalattendance = attendanceRecords.length > 0 ? attendanceRecords.reduce((acc, record) => acc + record.score, 0) : 0;
@@ -799,7 +801,8 @@ async function getGradesPrelim(classid) {
                 {
                     model: db.Account, 
                     as: 'studentinfo', 
-                    attributes: ['firstName', 'lastName', 'id'] 
+                    attributes: ['firstName', 'lastName'] 
+                    // attributes: ['firstName', 'lastName', 'id'] 
                 }
             ]
         });
@@ -818,15 +821,18 @@ async function getGradesPrelim(classid) {
         // Refetch students with the updated ComputedGradelist
         const updatedStudents = await db.Studentlist.findAll({
             where: { classid: classid },
+            attributes: [], 
             include: [
                 {
                     model: db.Account,
                     as: 'studentinfo',
-                    attributes: ['firstName', 'lastName', 'id']
+                    attributes: ['firstName', 'lastName'] 
+                    // attributes: ['firstName', 'lastName', 'id'] 
                 },
                 {
                     model: db.ComputedGradelist, 
-                    attributes: ['studentgradeid', 'term', 'totalattendance', 'perfectattendancescore','attendance5percent', 'totalparticipation','perfectparticipationscore','participation5percent','totalquiz', 'perfectquizscore','quiz15percent','totalactivityproject', 'perfectactivityprojectscore','activityproject45percent', 'totalexam', 'perfectexamscore','exam30percent', 'finalcomputedgrade','transmutedgrade'],
+                    attributes: ['term','finalcomputedgrade','transmutedgrade'],
+                    // attributes: ['studentgradeid', 'term', 'totalattendance', 'perfectattendancescore','attendance5percent', 'totalparticipation','perfectparticipationscore','participation5percent','totalquiz', 'perfectquizscore','quiz15percent','totalactivityproject', 'perfectactivityprojectscore','activityproject45percent', 'totalexam', 'perfectexamscore','exam30percent', 'finalcomputedgrade','transmutedgrade'],
                     where: { term: 'Prelim' },
                     required: false
                 }
@@ -834,7 +840,8 @@ async function getGradesPrelim(classid) {
         });
 
         return {
-            message: `Students and computed grades retrieved successfully for class with id ${classid}.`,
+            // message: `Students and computed grades retrieved successfully for class with id ${classid}.`,
+            // message: `Students and computed grades retrieved successfully for class with id ${classid}.`,
             students: updatedStudents.map(student => student.get({ plain: true }))
         };
 
@@ -863,7 +870,8 @@ async function getGradesMidterm(classid) {
                 {
                     model: db.Account, 
                     as: 'studentinfo', 
-                    attributes: ['firstName', 'lastName', 'id'] 
+                    attributes: ['firstName', 'lastName'] 
+                    // attributes: ['firstName', 'lastName', 'id'] 
                 }
             ]
         });
@@ -884,15 +892,18 @@ async function getGradesMidterm(classid) {
         // Refetch students with the updated ComputedGradelist
         const updatedStudents = await db.Studentlist.findAll({
             where: { classid: classid },
+            attributes: [],
             include: [
                 {
                     model: db.Account,
                     as: 'studentinfo',
-                    attributes: ['firstName', 'lastName', 'id']
+                    attributes: ['firstName', 'lastName'] 
+                    // attributes: ['firstName', 'lastName', 'id'] 
                 },
                 {
                     model: db.ComputedGradelist, 
-                    attributes: ['studentgradeid', 'term', 'totalattendance', 'perfectattendancescore','attendance5percent', 'totalparticipation','perfectparticipationscore','participation5percent','totalquiz', 'perfectquizscore','quiz15percent','totalactivityproject', 'perfectactivityprojectscore','activityproject45percent', 'totalexam', 'perfectexamscore','exam30percent', 'finalcomputedgrade','transmutedgrade'],
+                    attributes: ['term','finalcomputedgrade','transmutedgrade'],
+                    // attributes: ['studentgradeid', 'term', 'totalattendance', 'perfectattendancescore','attendance5percent', 'totalparticipation','perfectparticipationscore','participation5percent','totalquiz', 'perfectquizscore','quiz15percent','totalactivityproject', 'perfectactivityprojectscore','activityproject45percent', 'totalexam', 'perfectexamscore','exam30percent', 'finalcomputedgrade','transmutedgrade'],
                     where: { term: 'Midterm' },
                     required: false
                 }
@@ -915,6 +926,7 @@ async function getGradesFinal(classid) {
         // Validate that the class exists
         const classRecord = await db.Classlist.findOne({
             where: { classid: classid }
+ 
         });
 
         if (!classRecord) {
@@ -924,11 +936,13 @@ async function getGradesFinal(classid) {
         // Fetch all students associated with the class
         const students = await db.Studentlist.findAll({
             where: { classid: classid },
+         
             include: [
                 {
                     model: db.Account, 
                     as: 'studentinfo', 
-                    attributes: ['firstName', 'lastName', 'id'] 
+                    attributes: ['firstName', 'lastName'] 
+                    // attributes: ['firstName', 'lastName', 'id'] 
                 }
             ]
         });
@@ -948,6 +962,8 @@ async function getGradesFinal(classid) {
         // Refetch students with the updated ComputedGradelist
         const updatedStudents = await db.Studentlist.findAll({
             where: { classid: classid },
+            
+            attributes: [],
             include: [
                 {
                     model: db.Account,
@@ -956,9 +972,9 @@ async function getGradesFinal(classid) {
                 },
                 {
                     model: db.ComputedGradelist, 
-                    attributes: ['studentgradeid', 'term', 'totalattendance', 'perfectattendancescore','attendance5percent', 'totalparticipation','perfectparticipationscore','participation5percent','totalquiz', 'perfectquizscore','quiz15percent','totalactivityproject', 'perfectactivityprojectscore','activityproject45percent', 'totalexam', 'perfectexamscore','exam30percent', 'finalcomputedgrade','transmutedgrade'],
+                    attributes: ['term','finalcomputedgrade','transmutedgrade'],
+                    // attributes: ['studentgradeid', 'term', 'totalattendance', 'perfectattendancescore','attendance5percent', 'totalparticipation','perfectparticipationscore','participation5percent','totalquiz', 'perfectquizscore','quiz15percent','totalactivityproject', 'perfectactivityprojectscore','activityproject45percent', 'totalexam', 'perfectexamscore','exam30percent', 'finalcomputedgrade','transmutedgrade'],
                     where: { term: 'Final' },
-                    required: false
                 }
             ]
         });

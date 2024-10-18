@@ -1,3 +1,4 @@
+//student.model.js
 const { DataTypes } = require('sequelize');
 
 module.exports = model;
@@ -15,7 +16,7 @@ function model(sequelize) {
         classid:{type: DataTypes.INTEGER, allowNull: false, 
             
             references: {
-                model: 'classlists', 
+                model: 'externalclasslists', 
                 key: 'classid' 
             }
         },  
@@ -29,10 +30,10 @@ function model(sequelize) {
     }; 
 
     const options = {
-        
+        tableName: 'studentlists',
         timestamps: false,
         
     };
-    return sequelize.define('studentlist', attributes, options); 
+    return sequelize.define('Studentlist', attributes, options); 
 }
 

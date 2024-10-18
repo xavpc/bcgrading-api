@@ -1,3 +1,4 @@
+//grade.model.js   db.Gradelist
 const { DataTypes } = require('sequelize');
 
 module.exports = model;
@@ -9,7 +10,7 @@ function model(sequelize) {
             classid:{type: DataTypes.INTEGER, allowNull: false, 
             
                 references: {
-                    model: 'classlists', 
+                    model: 'externalclasslists', 
                     key: 'classid' 
                 }
             },  
@@ -31,9 +32,9 @@ function model(sequelize) {
     }; 
 
     const options = {
-        
+        tableName: 'gradelists',
         timestamps: false
     };
-    return sequelize.define('gradelist', attributes, options); 
+    return sequelize.define('Gradelist', attributes, options); 
 }
 

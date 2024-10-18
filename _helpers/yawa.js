@@ -34,14 +34,13 @@ async function initialize() {
     
 
 
-    //Not part of accounts db models
+
     db.Yearlist = require('../-models/year.model.js')(sequelize);
     
     db.Semesterlist = require('../-models/semester.model.js')(sequelize);
 
     db.Subjectlist = require('../-models/subjects.model.js')(sequelize);
 
-    // db.Classlist = require('../-models/classlist.model.js')(sequelize);
 
     db.Studentlist = require('../-grades/student.model.js')(sequelize);
 
@@ -53,37 +52,27 @@ async function initialize() {
 
     db.Classlist = require("../-models/classlist_external.model.js")(sequelize);
 
-    // sync all models with database first para di mag error     // await sequelize.sync();
-    // await db.Account.sync(); 
-    // await db.Yearlist.sync();
-    // await db.Semesterlist.sync();
-    // await db.Subjectlist.sync();
-    // await db.Classlist.sync();
-    // await db.Studentlist.sync();
-    // await db.Gradelist.sync();
-    // await db.Scorelist.sync();
-    // await db.ComputedGradelist.sync();
-    // await db.Yearlist.sync({ alter: true });
-    // await db.Semesterlist.sync({ alter: true });
-    // await db.Subjectlist.sync({ alter: true });
-    // await db.Account.sync({ alter: true });
-    // await db.Classlist.sync({ alter: true });
-    // await db.Studentlist.sync({ alter: true });
-    // await db.Gradelist.sync({ alter: true });
-    // await db.Scorelist.sync({ alter: true });
-    // await db.ComputedGradelist.sync({ alter: true });
+    await db.Yearlist.sync({ alter: true });
+    await db.Semesterlist.sync({ alter: true });
+    await db.Subjectlist.sync({ alter: true });
+    await db.Account.sync({ alter: true });
+    await db.Classlist.sync({ alter: true });
+    await db.Studentlist.sync({ alter: true });
+    await db.Gradelist.sync({ alter: true });
+    await db.Scorelist.sync({ alter: true });
+    await db.ComputedGradelist.sync({ alter: true });
     
-    // Now add the relationships
+
     addRelationships();
 
     // ! Account --> Classlist External
     db.Account.hasMany(db.Classlist, { foreignKey: 'id' });
     db.Classlist.belongsTo(db.Account, { foreignKey: 'teacherid' , as: 'TeacherInfo' }); 
 
-    // Sync again to apply the relationships kani kuhaon na ug mana ang system
-    // await sequelize.sync({ alter: true }); 
+    
+    await sequelize.sync({ alter: true }); 
   
-    await sequelize.sync(); 
+
     await initializeData(db);    
 }
 
@@ -99,11 +88,20 @@ function addRelationships() {
       db.Scorelist.belongsTo(db.Studentlist, { foreignKey: 'studentgradeid' });
   
       
-      db.Gradelist.hasMany(db.Scorelist, { foreignKey: 'gradeid' });
-      db.Scorelist.belongsTo(db.Gradelist, { foreignKey: 'gradeid'});
+      db.Gradelist.hasMany(db.Scorelist, { foreignKey: 'gradeid', as: 'Scores' });
+      db.Scorelist.belongsTo(db.Gradelist, { foreignKey: 'gradeid', as: 'Grade' });
       
   
       db.ComputedGradelist.belongsTo(db.Studentlist, { foreignKey: 'studentgradeid' });
       db.Studentlist.hasMany(db.ComputedGradelist, { foreignKey: 'studentgradeid' });
 
 }
+
+
+
+
+
+
+
+
+

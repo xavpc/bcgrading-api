@@ -9,7 +9,7 @@ const Service = require('./teacher.service');
 
 
 // router.get('/', authorize(Role.Teacher), getAll);
-router.get('/:teacherid', authorize(Role.Teacher), getAll);
+router.get('/:teacherid', getAll);
 router.get('/years/:teacherid', authorize(Role.Teacher),  getAllYear);
 router.get('/semesters/:teacherid', authorize(Role.Teacher),  getAllSemester);
 router.get('/subjects/:teacherid', authorize(Role.Teacher),  getAllSubject);
@@ -300,6 +300,7 @@ function getGradesPrelim(req, res, next) {
     Service.getGradesPrelim(req.params.classid)
         .then(result => res.json({
             message: result.message,
+            // message: result.message,
             students: result.students
         }))
         .catch(next);

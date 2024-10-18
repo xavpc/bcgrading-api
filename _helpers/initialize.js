@@ -8,7 +8,7 @@ async function initializeData(db) {
             db.Yearlist.findAll(),
             db.Semesterlist.findAll(),
             db.Subjectlist.findAll(),
-            db.Classlist.findAll(),        
+            // db.Classlist.findAll(),        
             db.Studentlist.findAll()
         ]);
         

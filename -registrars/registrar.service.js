@@ -38,11 +38,12 @@ module.exports = {
 // }
 async function getAll() {
     return await db.Classlist.findAll({
-        include: [{
-            model: db.Subjectlist,
-            as: 'Subjectitle',
-            attributes: ['title'] 
-        },
+        include: [
+        //     {
+        //     model: db.Subjectlist,
+        //     as: 'Subjectitle',
+        //     attributes: ['title'] 
+        // },
         {
             model: db.Account,
             as: 'TeacherInfo', 
@@ -80,11 +81,12 @@ async function getAllTeacher() {
 async function getByID(classid) {
     return await db.Classlist.findOne({
         where: { classid: classid },
-        include: [{
-            model: db.Subjectlist,
-            as: 'Subjectitle',
-            attributes: ['title'] 
-        },
+        include: [
+        //     {
+        //     model: db.Subjectlist,
+        //     as: 'Subjectitle',
+        //     attributes: ['title'] 
+        // },
         {
             model: db.Account,
             as: 'TeacherInfo', 
