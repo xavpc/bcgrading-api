@@ -31,7 +31,8 @@ module.exports = {
   computeGrade,
   getGradesPrelim,
   getGradesMidterm,
-  getGradesFinal
+  getGradesFinal,
+  getAllGrades
 };
 
 
@@ -987,5 +988,64 @@ async function getGradesFinal(classid) {
     } catch (error) {
         console.error('Error retrieving students for class:', error); 
         throw new Error('Failed to retrieve students for class.'); 
+    }
+}
+
+
+
+
+async function getAllGrades(classid) {
+    try {
+        // Validate that the class exists
+        const classRecord = await db.Classlist.findOne({
+            where: { classid: classid }
+        });
+
+        if (!classRecord) {
+            throw new Error(`Class with id ${classid} not found.`);
+        }
+
+        // Fetch all students associated with the class and their computed grades
+        const studentsWithGrades = await db.Studentlist.findAll({
+            where: { classid: classid },
+            include: [
+                {
+                    model: db.Account,
+                    as: 'studentinfo',
+                    attributes: ['firstName', 'lastName']
+                },
+                {
+                    model: db.ComputedGradelist,
+                    attributes: ['term', 'finalcomputedgrade', 'transmutedgrade'],
+                    where: {
+                        term: ['Prelim', 'Midterm', 'Final']
+                    },
+                    required: false // This will include students without computed grades
+                }
+            ]
+        });
+
+        // Transform the data to return a simplified response
+        const students = studentsWithGrades.map(student => {
+            // Reduce ComputedGradelist to map Prelim, Midterm, and Final grades
+            const grades = student.ComputedGradelists.reduce((acc, grade) => {
+                acc[grade.term] = grade.transmutedgrade;
+                return acc;
+            }, { Prelim: '5', Midterm: '5', Final: '5' }); // Default value '5' if no grade exists
+
+            return {
+                studentinfo: student.studentinfo,
+                grades
+            };
+        });
+
+        return {
+            message: `Students and computed grades retrieved successfully for class with id ${classid}.`,
+            students: students
+        };
+
+    } catch (error) {
+        console.error('Error retrieving students for class:', error);
+        throw new Error('Failed to retrieve students for class.');
     }
 }

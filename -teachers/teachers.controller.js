@@ -60,6 +60,8 @@ router.get('/Final/Exam/:classid', getFinalExam);
 
 router.get('/getgradelist/:gradeid', getGradeList);
 
+router.get('/gradesofstudents/:classid', getAllGrades);
+
 module.exports = router;
 
 function getAll(req, res, next) {
@@ -321,6 +323,18 @@ function getGradesFinal(req, res, next) {
     Service.getGradesFinal(req.params.classid)
         .then(result => res.json({
             message: result.message,
+            students: result.students
+        }))
+        .catch(next);
+}
+
+
+function getAllGrades(req, res, next) {
+
+    // Fetch all grades (Prelim, Midterm, Final) for the specified class
+    Service.getAllGrades(req.params.classid)
+        .then(result => res.json({
+            // message: result.message,
             students: result.students
         }))
         .catch(next);
