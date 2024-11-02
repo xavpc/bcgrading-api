@@ -8,6 +8,9 @@ const externalService = require("./external.service");
 router.get("/fetch-classes", FetchClasses);
 router.get("/fetch-employees", FetchEmployees);
 
+router.get('/get-grades-of-students-by-classid/:classid', getAllGrades);
+
+
 module.exports = router;
 
 function FetchClasses(req, res, next) {
@@ -22,4 +25,16 @@ function FetchEmployees(req, res, next) {
     .FetchEmployees()
     .then((result) => res.json(result))
     .catch(next);
+}
+
+
+function getAllGrades(req, res, next) {
+
+  // Fetch all grades (Prelim, Midterm, Final) for the specified class
+  externalService.getAllGrades(req.params.classid)
+      .then(result => res.json({
+          // message: result.message,
+          students: result.students
+      }))
+      .catch(next);
 }
