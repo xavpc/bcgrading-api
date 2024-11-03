@@ -12,8 +12,8 @@ function model(sequelize) {
             autoIncrement: true,
           },
           
-        username: { type: DataTypes.STRING, allowNull: false },
-        passwordHash: { type: DataTypes.STRING, allowNull: false },     
+        username: { type: DataTypes.STRING, allowNull: true },
+        passwordHash: { type: DataTypes.STRING, allowNull: true },     
         firstName: { type: DataTypes.STRING, allowNull: false },
         lastName: { type: DataTypes.STRING, allowNull: false },     
         role: { type: DataTypes.STRING, allowNull: false }, // Teacher
@@ -42,5 +42,12 @@ function model(sequelize) {
         }        
     };
 
-    return sequelize.define('account', attributes, options);
+    const Account = sequelize.define('account', attributes, options);
+
+    // Set the starting auto-increment value to 3000 after the model is created
+    Account.sync().then(() => {
+        sequelize.query(`ALTER TABLE accounts AUTO_INCREMENT = 3000;`);
+    });
+
+    return Account;
 }
