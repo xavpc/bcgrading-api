@@ -9,7 +9,7 @@ function model(sequelize) {
             type: DataTypes.INTEGER,
             primaryKey: true,
             allowNull: false,
-            autoIncrement: false,
+            autoIncrement: true,
           },
           
         username: { type: DataTypes.STRING, allowNull: false },
