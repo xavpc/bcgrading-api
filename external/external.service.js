@@ -148,7 +148,7 @@ async function getAllGrades(classid) {
               {
                   model: db.Account,
                   as: 'studentinfo',
-                  attributes: ['firstName', 'lastName']
+                  attributes: ['id', 'firstName', 'lastName']
               },
               {
                   model: db.ComputedGradelist,
