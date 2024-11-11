@@ -34,7 +34,9 @@ module.exports = {
   getGradesFinal,
   getAllGrades,
   updateAttendanceDate,
-  getGradeInfo
+  getGradeInfo,
+  updatePerfectScore
+  
 };
 
 
@@ -1094,7 +1096,30 @@ async function getGradeInfo(gradeid) {
         where: { 
             gradeid: gradeid,
         }
-        ,attributes: ['gradeid', 'classid', 'attendanceDate'] 
+        ,attributes: ['gradeid', 'classid', 'attendanceDate', 'perfectscore'] 
     });
 }
 
+async function updatePerfectScore(gradeid, params) {
+    // Find the grade entry in Gradelist
+    const gradeEntry = await db.Gradelist.findByPk(gradeid);
+
+    if (!gradeEntry) {
+        throw new Error(`Grade with ID ${gradeid} not found.`);
+    }
+
+    // Update the perfectscore in Gradelist
+    gradeEntry.perfectscore = params.perfectscore;
+    await gradeEntry.save();
+
+    // Update all related Scorelist entries with the new perfectscore and set score to null
+    await db.Scorelist.update(
+        { perfectscore: params.perfectscore, score: 0 },
+        { where: { gradeid: gradeid } }
+    );
+
+    return {
+        message: "Perfect score updated successfully for the grade and all associated score entries.",
+        gradeDetails: gradeEntry,
+    };
+}

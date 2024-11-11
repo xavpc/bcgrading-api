@@ -66,6 +66,8 @@ router.put('/updateattendancedate/:gradeid', updateAttendanceDate,updateAttendan
 
 router.get('/getgradeinfo/:gradeid', getGradeInfo);
 
+router.put('/updateperfectscore/:gradeid', updatePerfectScore,updatePerfectScoreSchema);
+
 module.exports = router;
 
 function getAll(req, res, next) {
@@ -367,4 +369,22 @@ function getGradeInfo(req, res, next) {
     Service.getGradeInfo(req.params.gradeid)
         .then(gradeinfo => res.json(gradeinfo))
         .catch(next);
+}
+
+
+function updatePerfectScore(req, res, next) {
+    Service.updatePerfectScore(req.params.gradeid, req.body)
+        .then((updatePerfectScore) => res.json({
+            // message: 'Grade updated successfully',
+            // data: 
+            updatePerfectScore
+        }))
+        .catch(next);
+}
+
+function updatePerfectScoreSchema(req, res, next) {
+    const schema = Joi.object({
+        perfectscore: Joi.number().integer().required(),
+    });
+    validateRequest(req, next, schema);
 }
