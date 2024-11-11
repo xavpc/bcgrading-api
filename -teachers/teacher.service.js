@@ -32,7 +32,9 @@ module.exports = {
   getGradesPrelim,
   getGradesMidterm,
   getGradesFinal,
-  getAllGrades
+  getAllGrades,
+  updateAttendanceDate,
+  getGradeInfo
 };
 
 
@@ -1049,3 +1051,50 @@ async function getAllGrades(classid) {
         throw new Error('Failed to retrieve students for class.');
     }
 }
+
+
+async function updateAttendanceDate(gradeid, params) {
+    const attendancedatechange = await db.Gradelist.findByPk(gradeid);
+
+    if (!attendancedatechange) {
+        throw new Error(`Grade with ID ${gradeid} not found.`);
+    }
+
+
+    if (attendancedatechange.attendanceDate === params.attendanceDate) {
+        throw new Error("You are trying to input the same date as the current attendance date.");
+    }
+
+    const existingAttendance = await db.Gradelist.findOne({
+        where: {    
+            attendanceDate: params.attendanceDate, 
+          
+        }
+    });
+
+    if (existingAttendance) {
+        const formattedDate = new Date(params.attendanceDate).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+        throw new Error(`Attendance Date:${formattedDate} already exists for this class!`);
+    }
+
+    
+    Object.assign(attendancedatechange, params);
+   
+
+    await attendancedatechange.save();
+
+    return attendancedatechange.get();
+     
+}
+
+
+
+async function getGradeInfo(gradeid) {
+    return await db.Gradelist.findOne({
+        where: { 
+            gradeid: gradeid,
+        }
+        ,attributes: ['gradeid', 'classid', 'attendanceDate'] 
+    });
+}
+

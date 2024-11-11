@@ -62,6 +62,10 @@ router.get('/getgradelist/:gradeid', getGradeList);
 
 router.get('/gradesofstudents/:classid', getAllGrades);
 
+router.put('/updateattendancedate/:gradeid', updateAttendanceDate,updateAttendanceDateSchema);
+
+router.get('/getgradeinfo/:gradeid', getGradeInfo);
+
 module.exports = router;
 
 function getAll(req, res, next) {
@@ -337,5 +341,30 @@ function getAllGrades(req, res, next) {
             // message: result.message,
             students: result.students
         }))
+        .catch(next);
+}
+
+
+function updateAttendanceDate(req, res, next) {
+    Service.updateAttendanceDate(req.params.gradeid, req.body)
+        .then((updateAttendanceDate) => res.json({
+            // message: 'Grade updated successfully',
+            // data: 
+            updateAttendanceDate
+        }))
+        .catch(next);
+}
+
+function updateAttendanceDateSchema(req, res, next) {
+    const schema = Joi.object({
+        attendanceDate: Joi.date().required(),
+    });
+    validateRequest(req, next, schema);
+}
+
+
+function getGradeInfo(req, res, next) {
+    Service.getGradeInfo(req.params.gradeid)
+        .then(gradeinfo => res.json(gradeinfo))
         .catch(next);
 }
