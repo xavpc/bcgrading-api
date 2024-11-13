@@ -1035,7 +1035,7 @@ async function getAllGrades(classid) {
             const grades = student.ComputedGradelists.reduce((acc, grade) => {
                 acc[grade.term] = grade.transmutedgrade;
                 return acc;
-            }, { Prelim: '5', Midterm: '5', Final: '5' }); // Default value '5' if no grade exists
+            }, { Prelim: '5.0', Midterm: '5.0', Final: '5.0' }); // Default value '5' if no grade exists
 
             return {
                 studentinfo: student.studentinfo,
