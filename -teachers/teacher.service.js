@@ -35,7 +35,8 @@ module.exports = {
   getAllGrades,
   updateAttendanceDate,
   getGradeInfo,
-  updatePerfectScore
+  updatePerfectScore,
+  archiveGrade
   
 };
 
@@ -1121,5 +1122,31 @@ async function updatePerfectScore(gradeid, params) {
     return {
         message: "Perfect score updated successfully for the grade and all associated score entries.",
         gradeDetails: gradeEntry,
+    };
+}
+
+
+
+async function archiveGrade(gradeid) {
+    // Find the grade entry in Gradelist
+    const deleteGrade = await db.Gradelist.findByPk(gradeid);
+
+    if (!deleteGrade) {
+        throw new Error(`Grade with ID ${gradeid} not found.`);
+    }
+
+    // Update the perfectscore in Gradelist
+    deleteGrade.active = false;
+    await deleteGrade.save();
+
+    // Update all related Scorelist entries with the new perfectscore and set score to null
+    await db.Scorelist.update(
+        { active: false },
+        { where: { gradeid: gradeid } }
+    );
+
+    return {
+        message: "Grade successfully deleted",
+        gradeDetails: deleteGrade,
     };
 }

@@ -33,7 +33,8 @@ function model(sequelize) {
 
         created: { type: DataTypes.DATE, allowNull: false, defaultValue: DataTypes.NOW },
         updated: { type: DataTypes.DATE},
-    
+        
+        active: {type: DataTypes.BOOLEAN, defaultValue: true}
         
   
 

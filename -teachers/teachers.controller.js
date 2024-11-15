@@ -68,6 +68,7 @@ router.get('/getgradeinfo/:gradeid', getGradeInfo);
 
 router.put('/updateperfectscore/:gradeid', updatePerfectScore,updatePerfectScoreSchema);
 
+router.put('/deletescore/:gradeid', deleteGrade);
 module.exports = router;
 
 function getAll(req, res, next) {
@@ -387,4 +388,15 @@ function updatePerfectScoreSchema(req, res, next) {
         perfectscore: Joi.number().integer().required(),
     });
     validateRequest(req, next, schema);
+}
+
+
+function deleteGrade(req, res, next) {
+    Service.archiveGrade(req.params.gradeid)
+        .then((archiveGrade) => res.json({
+            // message: 'Grade updated successfully',
+            // data: 
+            archiveGrade
+        }))
+        .catch(next);
 }
