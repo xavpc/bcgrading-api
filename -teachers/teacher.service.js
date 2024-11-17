@@ -199,7 +199,8 @@ async function addNewAttendance(params) {
             classid: classid,
             attendanceDate: attendanceDate,
             // term: term,
-            scoretype: scoretype
+            scoretype: scoretype,
+            active: true
         }
     });
 
@@ -262,7 +263,8 @@ async function addNewAttendance(params) {
       where: {
         classid: classid,
         term: term,
-        scoretype: scoretype
+        scoretype: scoretype,
+        active: true
       }
     });
   
@@ -313,6 +315,7 @@ async function getPrelimAttendance(classid) {
         where: { 
             classid: classid,
             term: 'Prelim',
+            active: true,
             scoretype: 'Attendance'  
         },
         order: [['attendanceDate', 'ASC']]
@@ -323,6 +326,7 @@ async function getPrelimParticipation(classid) {
         where: { 
             classid: classid,
             term: 'Prelim',
+            active: true,
             scoretype: 'Participation'  
         }
     });
@@ -333,6 +337,7 @@ async function getPrelimQuiz(classid) {
         where: { 
             classid: classid,
             term: 'Prelim',
+            active: true,
             scoretype: 'Quiz'  
         }
     });
@@ -342,6 +347,7 @@ async function getPrelimActivity(classid) {
         where: { 
             classid: classid,
             term: 'Prelim',
+            active: true,
             scoretype: 'Activity-Project'  
         }
     });
@@ -352,6 +358,7 @@ async function getPrelimExam(classid) {
         where: { 
             classid: classid,
             term: 'Prelim',
+            active: true,
             scoretype: 'Exam'  
         }
     });
@@ -365,6 +372,7 @@ async function getMidtermAttendance(classid) {
         where: { 
             classid: classid,
             term: 'Midterm',
+            active: true,
             scoretype: 'Attendance'  
         },
         order: [['attendanceDate', 'ASC']]
@@ -375,6 +383,7 @@ async function getMidtermParticipation(classid) {
         where: { 
             classid: classid,
             term: 'Midterm',
+            active: true,
             scoretype: 'Participation'  
         }
     });
@@ -385,6 +394,7 @@ async function getMidtermQuiz(classid) {
         where: { 
             classid: classid,
             term: 'Midterm',
+            active: true,
             scoretype: 'Quiz'  
         }
     });
@@ -394,6 +404,7 @@ async function getMidtermActivity(classid) {
         where: { 
             classid: classid,
             term: 'Midterm',
+            active: true,
             scoretype: 'Activity-Project'  
         }
     });
@@ -404,6 +415,7 @@ async function getMidtermExam(classid) {
         where: { 
             classid: classid,
             term: 'Midterm',
+            active: true,
             scoretype: 'Exam'  
         }
     });
@@ -416,6 +428,7 @@ async function getFinalAttendance(classid) {
         where: { 
             classid: classid,
             term: 'Final',
+            active: true,
             scoretype: 'Attendance'  
         },
         order: [['attendanceDate', 'ASC']]
@@ -426,6 +439,7 @@ async function getFinalParticipation(classid) {
         where: { 
             classid: classid,
             term: 'Final',
+            active: true,
             scoretype: 'Participation'  
         }
     });
@@ -436,6 +450,7 @@ async function getFinalQuiz(classid) {
         where: { 
             classid: classid,
             term: 'Final',
+            active: true,
             scoretype: 'Quiz'  
         }
     });
@@ -445,6 +460,7 @@ async function getFinalActivity(classid) {
         where: { 
             classid: classid,
             term: 'Final',
+            active: true,
             scoretype: 'Activity-Project'  
         }
     });
@@ -455,6 +471,7 @@ async function getFinalExam(classid) {
         where: { 
             classid: classid,
             term: 'Final',
+            active: true,
             scoretype: 'Exam'  
         }
     });
@@ -463,7 +480,7 @@ async function getFinalExam(classid) {
 
 async function getGradeList(gradeid) {
     return await db.Scorelist.findAll({
-        where: { gradeid: gradeid },
+        where: { gradeid: gradeid, active: true },
         include: [
             {
                 model: db.Studentlist, // Include Studentlist
@@ -548,7 +565,7 @@ async function computeGrade(studentgradeid, term) {
     try {
         // Fetch attendance, participation, quiz, activity-project, exam records
         const attendanceRecords = await db.Scorelist.findAll({
-            where: { studentgradeid: studentgradeid, scoretype: 'Attendance',term: term },
+            where: { studentgradeid: studentgradeid, scoretype: 'Attendance',term: term, active: true },
             include: [{ model: db.Gradelist,  attributes: ['classid'] }]
         });
         console.log("Attendance Records:", attendanceRecords);
@@ -558,22 +575,22 @@ async function computeGrade(studentgradeid, term) {
         
         
         const participationRecords = await db.Scorelist.findAll({
-            where: { studentgradeid: studentgradeid, scoretype: 'Participation', term: term },
+            where: { studentgradeid: studentgradeid, scoretype: 'Participation', term: term, active: true },
             include: [{ model: db.Gradelist, attributes: ['classid'] }]
         });
 
         const quizRecords = await db.Scorelist.findAll({
-            where: { studentgradeid: studentgradeid, scoretype: 'Quiz', term: term },
+            where: { studentgradeid: studentgradeid, scoretype: 'Quiz', term: term, active: true },
             include: [{ model: db.Gradelist, attributes: ['classid'] }]
         });
 
         const activityprojectRecords = await db.Scorelist.findAll({
-            where: { studentgradeid: studentgradeid, scoretype: 'Activity-Project', term: term },
+            where: { studentgradeid: studentgradeid, scoretype: 'Activity-Project', term: term, active: true },
             include: [{ model: db.Gradelist, attributes: ['classid'] }]
         });
 
         const examRecords = await db.Scorelist.findAll({
-            where: { studentgradeid: studentgradeid, scoretype: 'Exam', term: term },
+            where: { studentgradeid: studentgradeid, scoretype: 'Exam', term: term, active: true },
             include: [{ model: db.Gradelist, attributes: ['classid'] }]
         });
 
@@ -584,9 +601,9 @@ async function computeGrade(studentgradeid, term) {
         (activityprojectRecords.length > 0 && activityprojectRecords[0].Gradelist?.classid) ||
         (examRecords.length > 0 && examRecords[0].Gradelist?.classid);
 
-if (!classid) {
-throw new Error(`No classid found in the score records for studentgradeid ${studentgradeid}`);
-}
+// if (!classid) {
+// throw new Error(`No classid found in the score records for studentgradeid ${studentgradeid}`);
+// }
 
 
         // Compute total scores and perfect scores for each category
@@ -619,8 +636,12 @@ const finalcomputedgrade = parseFloat((attendance5percent + participation5percen
 
 
         // Calculate transmuted grade
-        let transmutedgrade = parseFloat((Math.round((5 - (4 * finalcomputedgrade) / 99) * 10) / 10).toFixed(1));
+        let transmutedgrade = parseFloat((5 - (4 * finalcomputedgrade) / 99).toFixed(2));
 
+        transmutedgrade = parseFloat(transmutedgrade.toString());
+       
+     
+        
         // Check if an entry already exists in ComputedGradelist for the student and term
         const existingComputedGrade = await db.ComputedGradelist.findOne({
             where: { studentgradeid: studentgradeid, term: term }
@@ -684,49 +705,45 @@ const finalcomputedgrade = parseFloat((attendance5percent + participation5percen
     }
 }
 
-async function computeGradeMidterm(studentgradeid , classid) {
+async function computeGradeMidterm(studentgradeid, classid) {
     try {
-        // Fetch Prelim finalcomputedgrade
-        const prelimComputedGrade = await db.ComputedGradelist.findOne({
+        // Fetch Prelim transmuted grade
+        const prelimTransmutedGradeRecord = await db.ComputedGradelist.findOne({
             where: {
                 studentgradeid: studentgradeid,
                 term: 'Prelim'
             },
-            attributes: ['finalcomputedgrade']
+            attributes: ['transmutedgrade']
         });
 
-        if (!prelimComputedGrade) {
+        if (!prelimTransmutedGradeRecord) {
             throw new Error(`No Prelim grade found for studentgradeid ${studentgradeid}`);
         }
 
-        const prelimFinalComputedGrade = prelimComputedGrade.finalcomputedgrade;
+        const prelimTransmutedGrade = prelimTransmutedGradeRecord.transmutedgrade;
 
-        // Compute Midterm grade (this will calculate and return the ComputedGradelist for Midterm)
-        const midtermComputedGrade = await computeGrade(studentgradeid, 'Midterm');
+        // Compute Midterm grade using computeGrade function
+        const midtermComputedGradeRecord = await computeGrade(studentgradeid, 'Midterm');
 
-        if (!midtermComputedGrade) {
+        if (!midtermComputedGradeRecord) {
             throw new Error(`No Midterm grade found for studentgradeid ${studentgradeid}`);
         }
 
-        const midtermFinalComputedGrade = midtermComputedGrade.finalcomputedgrade;
+        const midtermTransmutedGrade = midtermComputedGradeRecord.transmutedgrade;
 
-        // Calculate updated finalcomputedgrade based on 1/3 Prelim and 2/3 Midterm
-        const updatedFinalComputedGrade = parseFloat(((1/3 * prelimFinalComputedGrade) + (2/3 * midtermFinalComputedGrade)).toFixed(2));
+        // Calculate updated transmuted grade based on 1/3 Prelim and 2/3 Midterm transmuted grades
+        const updatedTransmutedGrade = parseFloat(
+            ((1 / 3 * prelimTransmutedGrade) + (2 / 3 * midtermTransmutedGrade)).toFixed(2)
+        );
 
-        // Compute transmutedgrade again based on the updated finalcomputedgrade
-        const transmutedgrade = parseFloat((Math.round((5 - (4 * updatedFinalComputedGrade) / 99) * 10) / 10).toFixed(1));
-
-        // Update ComputedGradelist for Midterm with the new finalcomputedgrade and transmutedgrade
-        midtermComputedGrade.finalcomputedgrade = updatedFinalComputedGrade;
-        midtermComputedGrade.transmutedgrade = transmutedgrade;
-        await midtermComputedGrade.save();
+        // Update ComputedGradelist for Midterm with the new transmuted grade
+        midtermComputedGradeRecord.transmutedgrade = updatedTransmutedGrade;
+        await midtermComputedGradeRecord.save();
 
         return {
-            message: `Midterm grade updated successfully with combined Prelim and Midterm grades.`,
-            updatedFinalComputedGrade: updatedFinalComputedGrade,
-            updatedTransmutedGrade: transmutedgrade
+            message: `Midterm grade updated successfully with combined Prelim and Midterm transmuted grades.`,
+            updatedTransmutedGrade: updatedTransmutedGrade
         };
-
     } catch (error) {
         console.error('Error computing Midterm grade:', error);
         throw error;
@@ -735,47 +752,46 @@ async function computeGradeMidterm(studentgradeid , classid) {
 
 
 
+
 async function computeGradeFinal(studentgradeid , classid) {
     try {
-        // Fetch Midterm finalcomputedgrade
-        const midtermComputedGrade = await db.ComputedGradelist.findOne({
+        // Fetch Midterm transmuted grade
+        const midtermTransmutedGradeRecord = await db.ComputedGradelist.findOne({
             where: {
                 studentgradeid: studentgradeid,
                 term: 'Midterm'
             },
-            attributes: ['finalcomputedgrade']
+            attributes: ['transmutedgrade']
         });
 
-        if (!midtermComputedGrade) {
+        if (!midtermTransmutedGradeRecord) {
             throw new Error(`No Midterm grade found for studentgradeid ${studentgradeid}`);
         }
 
-        const midtermFinalComputedGrade = midtermComputedGrade.finalcomputedgrade;
+        const midtermTransmutedGrade = midtermTransmutedGradeRecord.transmutedgrade;
 
         // Compute Final grade (this will calculate and return the ComputedGradelist for Final)
-        const finalComputedGrade = await computeGrade(studentgradeid, 'Final');
+        const finalComputedGradeRecord = await computeGrade(studentgradeid, 'Final');
 
-        if (!finalComputedGrade) {
+        if (!finalComputedGradeRecord) {
             throw new Error(`No Final grade found for studentgradeid ${studentgradeid}`);
         }
 
-        const finalTermFinalComputedGrade = finalComputedGrade.finalcomputedgrade;
+        const finalTransmutedGrade = finalComputedGradeRecord.transmutedgrade;
 
-        // Calculate updated finalcomputedgrade based on 1/3 Midterm and 2/3 Final
-        const updatedFinalComputedGrade = parseFloat(((1/3 * midtermFinalComputedGrade) + (2/3 * finalTermFinalComputedGrade)).toFixed(2));
+        // Calculate updated transmuted grade based  on 1/3 Midterm and 2/3 Final
+        const updatedTransmutedGrade = parseFloat(
+            ((1 / 3 * midtermTransmutedGrade) + (2 / 3 * finalTransmutedGrade)).toFixed(2)
+        );
 
-        // Compute transmutedgrade again based on the updated finalcomputedgrade
-        const transmutedgrade = parseFloat((Math.round((5 - (4 * updatedFinalComputedGrade) / 99) * 10) / 10).toFixed(1));
-
-        // Update ComputedGradelist for Final with the new finalcomputedgrade and transmutedgrade
-        finalComputedGrade.finalcomputedgrade = updatedFinalComputedGrade;
-        finalComputedGrade.transmutedgrade = transmutedgrade;
-        await finalComputedGrade.save();
+             // Update ComputedGradelist for Final with the new transmuted grade
+             finalComputedGradeRecord.transmutedgrade = updatedTransmutedGrade;
+             await finalComputedGradeRecord.save();
 
         return {
             message: `Final grade updated successfully with combined Midterm and Final grades.`,
-            updatedFinalComputedGrade: updatedFinalComputedGrade,
-            updatedTransmutedGrade: transmutedgrade
+          
+            updatedTransmutedGrade: updatedTransmutedGrade
         };
 
     } catch (error) {
@@ -1071,6 +1087,7 @@ async function updateAttendanceDate(gradeid, params) {
     const existingAttendance = await db.Gradelist.findOne({
         where: {    
             attendanceDate: params.attendanceDate, 
+            active: true
           
         }
     });
