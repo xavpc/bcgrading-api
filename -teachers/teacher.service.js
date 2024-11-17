@@ -535,6 +535,24 @@ async function updateAttendance(scoreid, params) {
     // Save the updated record
     await attendancechange.save();
 
+       // Recompute grades after score update
+       try {
+        const studentgradeid = attendancechange.studentgradeid; // Assuming Scorelist has a `studentgradeid`
+        
+        // Recompute Prelim, Midterm, or Final grades based on the term
+        const term = attendancechange.term;
+
+      
+        // Recompute individual term grades
+        await computeGrade(studentgradeid, term);
+        await computeGradeMidterm(studentgradeid);
+        await computeGradeFinal(studentgradeid);
+
+    } catch (error) {
+        console.error('Error re-computing grades:', error);
+        throw new Error('Failed to recompute grades after score update.');
+    }
+
     return attendancechange.get();
 }
 
@@ -557,6 +575,26 @@ async function updateScore(scoreid, params) {
 
     await scorechange.save();
 
+      // Recompute grades after score update
+      try {
+        const studentgradeid = scorechange.studentgradeid; // Assuming Scorelist has a `studentgradeid`
+       
+
+        // Recompute Prelim, Midterm, or Final grades based on the term
+        const term = scorechange.term;
+
+        // Recompute individual term grades
+        await computeGrade(studentgradeid, term);
+        await computeGradeMidterm(studentgradeid);
+        await computeGradeFinal(studentgradeid);
+       
+
+    } catch (error) {
+        console.error('Error re-computing grades:', error);
+        throw new Error('Failed to recompute grades after score update.');
+    }
+
+
     return scorechange.get();
 }
 
@@ -568,10 +606,7 @@ async function computeGrade(studentgradeid, term) {
             where: { studentgradeid: studentgradeid, scoretype: 'Attendance',term: term, active: true },
             include: [{ model: db.Gradelist,  attributes: ['classid'] }]
         });
-        console.log("Attendance Records:", attendanceRecords);
-        attendanceRecords.forEach(record => {
-            console.log(`Scorelist ID: ${record.scoreid}, Gradelist:`, record.Gradelist);
-        });
+       
         
         
         const participationRecords = await db.Scorelist.findAll({
@@ -705,7 +740,7 @@ const finalcomputedgrade = parseFloat((attendance5percent + participation5percen
     }
 }
 
-async function computeGradeMidterm(studentgradeid, classid) {
+async function computeGradeMidterm(studentgradeid) {
     try {
         // Fetch Prelim transmuted grade
         const prelimTransmutedGradeRecord = await db.ComputedGradelist.findOne({
@@ -753,7 +788,7 @@ async function computeGradeMidterm(studentgradeid, classid) {
 
 
 
-async function computeGradeFinal(studentgradeid , classid) {
+async function computeGradeFinal(studentgradeid) {
     try {
         // Fetch Midterm transmuted grade
         const midtermTransmutedGradeRecord = await db.ComputedGradelist.findOne({
