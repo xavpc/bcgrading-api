@@ -243,6 +243,12 @@ async function addNewAttendance(params) {
             perfectscore: newGrade.perfectscore
         });
         scorelistEntries.push(scoreEntry); // Store the entry for response
+    
+        await computeGrade(student.studentgradeid, term);
+  
+        await computeGradeMidterm(student.studentgradeid);
+        await computeGradeFinal(student.studentgradeid);
+
     }
 
     return {
@@ -304,6 +310,12 @@ async function addNewAttendance(params) {
         perfectscore: newGrade.perfectscore
       });
       scorelistEntries.push(scoreEntry); // Store the entry for response
+   
+      await computeGrade(student.studentgradeid, term);
+  
+      await computeGradeMidterm(student.studentgradeid);
+      await computeGradeFinal(student.studentgradeid);
+   
     }
   
     return {
