@@ -630,12 +630,20 @@ async function computeGrade(studentgradeid, term) {
         });
 
         // Find classid from any of the records
-        const classid = (attendanceRecords.length > 0 && attendanceRecords[0].Gradelist?.classid) ||
+        let classid = (attendanceRecords.length > 0 && attendanceRecords[0].Gradelist?.classid) ||
         (participationRecords.length > 0 && participationRecords[0].Gradelist?.classid) ||
         (quizRecords.length > 0 && quizRecords[0].Gradelist?.classid) ||
         (activityprojectRecords.length > 0 && activityprojectRecords[0].Gradelist?.classid) ||
         (examRecords.length > 0 && examRecords[0].Gradelist?.classid);
 
+
+        if (!classid) {
+            const studentRecord = await db.Studentlist.findOne({
+                where: { studentgradeid: studentgradeid },
+                attributes: ['classid']
+            });
+            classid = studentRecord?.classid;
+        }
 // if (!classid) {
 // throw new Error(`No classid found in the score records for studentgradeid ${studentgradeid}`);
 // }
@@ -1052,6 +1060,8 @@ async function getGradesFinal(classid) {
 
 async function getAllGrades(classid) {
     try {
+      
+
         // Validate that the class exists
         const classRecord = await db.Classlist.findOne({
             where: { classid: classid }
@@ -1060,6 +1070,8 @@ async function getAllGrades(classid) {
         if (!classRecord) {
             throw new Error(`Class with id ${classid} not found.`);
         }
+
+      
 
         // Fetch all students associated with the class and their computed grades
         const studentsWithGrades = await db.Studentlist.findAll({
@@ -1171,6 +1183,37 @@ async function updatePerfectScore(gradeid, params) {
         { where: { gradeid: gradeid } }
     );
 
+    try {
+        const relatedScores = await db.Scorelist.findAll({
+            where: { gradeid: gradeid },
+            attributes: ['studentgradeid', 'term'],
+            include: [
+                {
+                    model: db.Gradelist,
+                    attributes: ['classid']
+                }
+            ]
+        });
+
+        for (const score of relatedScores) {
+            const { studentgradeid, term } = score;
+          
+
+            // Recompute individual term grade
+            await computeGrade(studentgradeid, term);
+
+            // Recompute Midterm and Final grades based on term
+         
+                await computeGradeMidterm(studentgradeid);
+                await computeGradeFinal(studentgradeid);
+     
+        }
+    } catch (error) {
+        console.error('Error re-computing grades after perfect score update:', error);
+        throw new Error('Failed to recompute grades after perfect score update.');
+    }
+
+
     return {
         message: "Perfect score updated successfully for the grade and all associated score entries.",
         gradeDetails: gradeEntry,
@@ -1191,11 +1234,42 @@ async function archiveGrade(gradeid) {
     deleteGrade.active = false;
     await deleteGrade.save();
 
-    // Update all related Scorelist entries with the new perfectscore and set score to null
+
     await db.Scorelist.update(
         { active: false },
         { where: { gradeid: gradeid } }
     );
+
+
+    try {
+        const relatedScores = await db.Scorelist.findAll({
+            where: { gradeid: gradeid },
+            attributes: ['studentgradeid', 'term'],
+            include: [
+                {
+                    model: db.Gradelist,
+                    attributes: ['classid']
+                }
+            ]
+        });
+
+        for (const score of relatedScores) {
+            const { studentgradeid, term } = score;
+          
+
+            // Recompute individual term grade
+            await computeGrade(studentgradeid, term);
+
+            // Recompute Midterm and Final grades based on term
+         
+                await computeGradeMidterm(studentgradeid);
+                await computeGradeFinal(studentgradeid);
+     
+        }
+    } catch (error) {
+        console.error('Error re-computing grades after perfect score update:', error);
+        throw new Error('Failed to recompute grades after perfect score update.');
+    }
 
     return {
         message: "Grade successfully deleted",
