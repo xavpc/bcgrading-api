@@ -174,7 +174,12 @@ async function addNewGrade(params) {
         perfectscore: newGrade.perfectscore
       });
       scorelistEntries.push(scoreEntry); // Store the entry for response
-  }
+ 
+      await computeGrade(student.studentgradeid, term);
+  
+      await computeGradeMidterm(student.studentgradeid);
+      await computeGradeFinal(student.studentgradeid);
+    }
 
   return {
       message: "Grade added successfully for all students in the class",
