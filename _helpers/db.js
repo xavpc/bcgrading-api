@@ -17,7 +17,10 @@ async function initialize() {
     await connection.query(`CREATE DATABASE IF NOT EXISTS \`${database}\`;`);
 
     // connect to db
-    const sequelize = new Sequelize(database, user, password, { dialect: 'mysql', host: host });
+    const sequelize = new Sequelize(database, user, password, { dialect: 'mysql', host: host, 
+        define: {
+        id: false,         // Disable default 'id' column globally
+      }, });
 
      // Assign Sequelize instance to the db object 
      db.Sequelize = Sequelize;
@@ -66,9 +69,9 @@ async function initialize() {
     // await db.Yearlist.sync({ alter: true });
     // await db.Semesterlist.sync({ alter: true });
     // await db.Subjectlist.sync({ alter: true });
-    await db.Account.sync({ alter: true });
-    await db.Classlist.sync({ alter: true });
-    await db.Studentlist.sync({ alter: true });
+    // await db.Account.sync({ alter: true });
+    // await db.Classlist.sync({ alter: true });
+    // await db.Studentlist.sync({ alter: true });
     // await db.Gradelist.sync({ alter: true });
     // await db.Scorelist.sync({ alter: true });
     // await db.ComputedGradelist.sync({ alter: true });
@@ -91,8 +94,8 @@ async function initialize() {
  //db relationships
 function addRelationships() {
   
-      db.Account.hasMany(db.Studentlist, { foreignKey: 'studentid', as: 'studentinfo' });
-      db.Studentlist.belongsTo(db.Account, { foreignKey: 'studentid', as: 'studentinfo' });
+    //   db.Account.hasMany(db.Studentlist, { foreignKey: 'studentid', as: 'studentinfo' });
+    //   db.Studentlist.belongsTo(db.Account, { foreignKey: 'studentid', as: 'studentinfo' });
       
   
       db.Studentlist.hasMany(db.Scorelist, { foreignKey: 'studentgradeid' });
@@ -106,4 +109,6 @@ function addRelationships() {
       db.ComputedGradelist.belongsTo(db.Studentlist, { foreignKey: 'studentgradeid' });
       db.Studentlist.hasMany(db.ComputedGradelist, { foreignKey: 'studentgradeid' });
 
+      db.Studentlist.belongsTo(db.Classlist, { foreignKey: 'classid' });
+      db.Classlist.hasMany(db.Studentlist, { foreignKey: 'classid' });
 }

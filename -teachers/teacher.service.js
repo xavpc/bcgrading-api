@@ -36,8 +36,9 @@ module.exports = {
   updateAttendanceDate,
   getGradeInfo,
   updatePerfectScore,
-  archiveGrade
-  
+  archiveGrade,
+  computeGradeMidterm,
+  computeGradeFinal
 };
 
 
@@ -149,7 +150,7 @@ async function addNewGrade(params) {
   }
 
   // Find all students in the same class
-  const studentsInClass = await db.Studentlist.findAll({ where: { classid: classid } });
+  const studentsInClass = await db.Studentlist.findAll({ where: { classid: classid }, attributes:['studentgradeid'] });
 
   if (studentsInClass.length === 0) {
       throw new Error(`No students found in class with ID: ${classid}`);
@@ -216,7 +217,7 @@ async function addNewAttendance(params) {
     }
 
     // Find all students in the same class
-    const studentsInClass = await db.Studentlist.findAll({ where: { classid: classid } });
+   const studentsInClass = await db.Studentlist.findAll({ where: { classid: classid }, attributes:['studentgradeid'] });
 
     if (studentsInClass.length === 0) {
         throw new Error(`No students found in class with ID: ${classid}`);
@@ -285,7 +286,7 @@ async function addNewAttendance(params) {
     }
   
     // Find all students in the same class
-    const studentsInClass = await db.Studentlist.findAll({ where: { classid: classid } });
+   const studentsInClass = await db.Studentlist.findAll({ where: { classid: classid }, attributes:['studentgradeid'] });
   
     if (studentsInClass.length === 0) {
       throw new Error(`No students found in class with ID: ${classid}`);
@@ -502,14 +503,14 @@ async function getGradeList(gradeid) {
         include: [
             {
                 model: db.Studentlist, // Include Studentlist
-                attributes: ['studentgradeid','studentid'], // Include only 'studentgradeid' from Studentlist
-                include: [
-                    {
-                        model: db.Account, // Include Account model for student details
-                        as: 'studentinfo', // Alias for Account
-                        attributes: ['firstName', 'lastName', 'id'] // Specify fields to include from Account
-                    }
-                ]
+                attributes: ['studentgradeid','student_id','student_personal_id','studentName' ], // Include only 'studentgradeid' from Studentlist
+                // include: [
+                //     {
+                //         model: db.Account, // Include Account model for student details
+                //         as: 'studentinfo', // Alias for Account
+                //         attributes: ['firstName', 'lastName', 'id'] // Specify fields to include from Account
+                //     }
+                // ]
             }
         ]
     });
@@ -882,14 +883,7 @@ async function getGradesPrelim(classid) {
         // Fetch all students associated with the class
         const students = await db.Studentlist.findAll({
             where: { classid: classid },
-            include: [
-                {
-                    model: db.Account, 
-                    as: 'studentinfo', 
-                    attributes: ['firstName', 'lastName'] 
-                    // attributes: ['firstName', 'lastName', 'id'] 
-                }
-            ]
+         
         });
 
         if (students.length === 0) {
@@ -906,14 +900,9 @@ async function getGradesPrelim(classid) {
         // Refetch students with the updated ComputedGradelist
         const updatedStudents = await db.Studentlist.findAll({
             where: { classid: classid },
-            attributes: [], 
+            attributes: ['studentName'], 
             include: [
-                {
-                    model: db.Account,
-                    as: 'studentinfo',
-                    attributes: ['firstName', 'lastName'] 
-                    // attributes: ['firstName', 'lastName', 'id'] 
-                },
+            
                 {
                     model: db.ComputedGradelist, 
                     attributes: ['term','finalcomputedgrade','transmutedgrade'],
@@ -951,14 +940,7 @@ async function getGradesMidterm(classid) {
         // Fetch all students associated with the class
         const students = await db.Studentlist.findAll({
             where: { classid: classid },
-            include: [
-                {
-                    model: db.Account, 
-                    as: 'studentinfo', 
-                    attributes: ['firstName', 'lastName'] 
-                    // attributes: ['firstName', 'lastName', 'id'] 
-                }
-            ]
+        
         });
 
         if (students.length === 0) {
@@ -977,14 +959,9 @@ async function getGradesMidterm(classid) {
         // Refetch students with the updated ComputedGradelist
         const updatedStudents = await db.Studentlist.findAll({
             where: { classid: classid },
-            attributes: [],
+            attributes: ['studentName'],
             include: [
-                {
-                    model: db.Account,
-                    as: 'studentinfo',
-                    attributes: ['firstName', 'lastName'] 
-                    // attributes: ['firstName', 'lastName', 'id'] 
-                },
+            
                 {
                     model: db.ComputedGradelist, 
                     attributes: ['term','finalcomputedgrade','transmutedgrade'],
@@ -1022,14 +999,7 @@ async function getGradesFinal(classid) {
         const students = await db.Studentlist.findAll({
             where: { classid: classid },
          
-            include: [
-                {
-                    model: db.Account, 
-                    as: 'studentinfo', 
-                    attributes: ['firstName', 'lastName'] 
-                    // attributes: ['firstName', 'lastName', 'id'] 
-                }
-            ]
+       
         });
 
         if (students.length === 0) {
@@ -1048,13 +1018,9 @@ async function getGradesFinal(classid) {
         const updatedStudents = await db.Studentlist.findAll({
             where: { classid: classid },
             
-            attributes: [],
+            attributes: ['studentName'],
             include: [
-                {
-                    model: db.Account,
-                    as: 'studentinfo',
-                    attributes: ['firstName', 'lastName', 'id']
-                },
+              
                 {
                     model: db.ComputedGradelist, 
                     attributes: ['term','finalcomputedgrade','transmutedgrade'],
@@ -1084,7 +1050,8 @@ async function getAllGrades(classid) {
 
         // Validate that the class exists
         const classRecord = await db.Classlist.findOne({
-            where: { classid: classid }
+            where: { classid: classid },
+            attributes: ['classid'],
         });
 
         if (!classRecord) {
@@ -1096,12 +1063,13 @@ async function getAllGrades(classid) {
         // Fetch all students associated with the class and their computed grades
         const studentsWithGrades = await db.Studentlist.findAll({
             where: { classid: classid },
+            attributes: ['studentgradeid','studentName','student_id','student_personal_id'],
             include: [
-                {
-                    model: db.Account,
-                    as: 'studentinfo',
-                    attributes: ['firstName', 'lastName']
-                },
+                // {
+                //     model: db.Account,
+                //     as: 'studentinfo',
+                //     attributes: ['firstName', 'lastName']
+                // },
                 {
                     model: db.ComputedGradelist,
                     attributes: ['term', 'finalcomputedgrade', 'transmutedgrade'],
@@ -1122,7 +1090,9 @@ async function getAllGrades(classid) {
             }, { Prelim: '5.0', Midterm: '5.0', Final: '5.0' }); // Default value '5' if no grade exists
 
             return {
-                studentinfo: student.studentinfo,
+                // studentinfo: student.studentinfo,
+                studentgradeid: student.studentgradeid,
+                studentName: student.studentName,
                 grades
             };
         });

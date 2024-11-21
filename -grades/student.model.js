@@ -10,7 +10,7 @@ function model(sequelize) {
             type: DataTypes.INTEGER, allowNull: false, autoIncrement: true,primaryKey: true},
 
             student_id:{ type: DataTypes.STRING, allowNull: false},
-            student_personal_id: {type: DataTypes.INTEGER, allowNul: false},
+            student_personal_id: {type: DataTypes.INTEGER, allowNull: false},
         // studentid: {type: DataTypes.INTEGER, allowNull: false,
         //     references: {
         //         model: 'accounts', 

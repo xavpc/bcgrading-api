@@ -3,6 +3,11 @@
 const axios = require("axios"); // Use axios for HTTP requests
 const db = require("_helpers/db"); // Ensure db.Classlist is correctly loaded
 const bcrypt = require("bcryptjs"); // Use bcrypt for hashing passwords
+const {
+  computeGrade,
+  computeGradeMidterm,
+  computeGradeFinal,
+} = require('-teachers/teacher.service');
 
 const MISUrlClass =
   "https://benedicto-scheduling-backend.onrender.com/teachers/all-subjects";
@@ -15,7 +20,9 @@ module.exports = {
   FetchClasses,
   FetchEmployees, // New function
   FetchEnrolled,
-  getAllGrades // get all grades of students 
+  getAllGrades, // get all grades of students 
+  getGradesbyStudentID,
+  getGradesbyStudentPersonalID
 };
 
 async function FetchClasses() {
@@ -173,12 +180,12 @@ async function FetchEnrolled() {
 
     // Log how many classes were fetched
     console.log(
-      `\nFetched ${enrolled.length} classes from MISUrlClass\n`
+      `\nFetched ${enrolled.length} enrollments from MISUrlClass\n`
     );
 
     // Map fetched data to the db.Classlist model
     const datatoInsert = enrolled.map((classData) => ({
-      studentgradeid: classData.class_id,
+      studentgradeid: classData.student_class_id,
       student_id: classData.student_id,
       student_personal_id: classData.student_personal_id,
       studentName: classData.studentName,
@@ -190,10 +197,10 @@ async function FetchEnrolled() {
     const insertedEnrollData = await db.Studentlist.bulkCreate(datatoInsert, {
       updateOnDuplicate: [
         "studentgradeid",
-        "student_id",
-        "student_personal_id",
-        "studentName",
-        "classid",
+        // "student_id",
+        // "student_personal_id",
+        // "studentName",
+        // "classid",
      
       ],
     });
@@ -218,52 +225,193 @@ async function getAllGrades(classid) {
   try {
       // Validate that the class exists
       const classRecord = await db.Classlist.findOne({
-          where: { classid: classid }
+          where: { classid: classid },
+          attributes: ['classid', 'subjectcode', 'semester', 'year'],
       });
 
       if (!classRecord) {
           throw new Error(`Class with id ${classid} not found.`);
       }
+    
 
       // Fetch all students associated with the class and their computed grades
       const studentsWithGrades = await db.Studentlist.findAll({
           where: { classid: classid },
+          attributes: ['studentgradeid', 'studentName', 'student_id', 'student_personal_id'],
           include: [
-              {
-                  model: db.Account,
-                  as: 'studentinfo',
-                  attributes: ['id', 'firstName', 'lastName']
-              },
               {
                   model: db.ComputedGradelist,
                   attributes: ['term', 'finalcomputedgrade', 'transmutedgrade'],
-                  where: {
-                      term: ['Prelim', 'Midterm', 'Final']
-                  },
-                  required: false // This will include students without computed grades
-              }
-          ]
+                  where: { term: ['Prelim', 'Midterm', 'Final'] },
+                  required: false, // Include students without computed grades
+              },
+          ],
       });
 
-      // Transform the data to return a simplified response
-      const students = studentsWithGrades.map(student => {
+      // Compute grades for each student
+      const students = [];
+      for (const student of studentsWithGrades) {
+          const { studentgradeid } = student;
+
+          // Compute Prelim, Midterm, and Final grades for the student
+          await computeGrade(studentgradeid, 'Prelim');
+          await computeGradeMidterm(studentgradeid);
+          await computeGradeFinal(studentgradeid);
+
           // Reduce ComputedGradelist to map Prelim, Midterm, and Final grades
-          const grades = student.ComputedGradelists.reduce((acc, grade) => {
-              acc[grade.term] = grade.transmutedgrade;
-              return acc;
-          }, { Prelim: '5', Midterm: '5', Final: '5' }); // Default value '5' if no grade exists
+          const grades = student.ComputedGradelists.reduce(
+              (acc, grade) => {
+                  acc[grade.term] = grade.transmutedgrade;
+                  return acc;
+              },
+              { Prelim: '5.0', Midterm: '5.0', Final: '5.0' } // Default values if no grades exist
+          );
 
-          return {
-              studentinfo: student.studentinfo,
-              grades
-          };
-      });
+          students.push({
+              // studentgradeid: student.studentgradeid,
+              subjectcode: classRecord.subjectcode,
+              semester: classRecord.semester,
+              year: classRecord.year,
+              studentName: student.studentName,
+              student_id: student.student_id,
+              student_personal_id: student.student_personal_id,
+              grades,
+          });
+      }
 
       return {
           message: `Students and computed grades retrieved successfully for class with id ${classid}.`,
-          students: students
+          students,
       };
+  } catch (error) {
+      console.error('Error retrieving students for class:', error);
+      throw new Error('Failed to retrieve students for class.');
+  }
+}
 
+
+async function getGradesbyStudentID(student_id) {
+  try {
+      // Fetch all students associated with the class and their computed grades
+      const studentsWithGrades = await db.Studentlist.findAll({
+          where: { student_id: student_id },
+          attributes: ['studentgradeid', 'studentName', 'student_id', 'student_personal_id'],
+          include: [
+              {
+                  model: db.ComputedGradelist,
+                  attributes: ['term', 'finalcomputedgrade', 'transmutedgrade'],
+                  where: { term: ['Prelim', 'Midterm', 'Final'] },
+                  required: false, // Include students without computed grades
+              },
+              {
+                model: db.Classlist,
+                attributes: ['classid', 'subjectcode', 'semester', 'year'],
+              }
+          ],
+      });
+
+      if (!studentsWithGrades) {
+        throw new Error(`Class with id ${student_id} not found.`);
+    }
+
+      // Compute grades for each student
+      const students = [];
+      for (const student of studentsWithGrades) {
+          const { studentgradeid } = student;
+
+          // Compute Prelim, Midterm, and Final grades for the student
+          await computeGrade(studentgradeid, 'Prelim');
+          await computeGradeMidterm(studentgradeid);
+          await computeGradeFinal(studentgradeid);
+
+          // Reduce ComputedGradelist to map Prelim, Midterm, and Final grades
+          const grades = student.ComputedGradelists.reduce(
+              (acc, grade) => {
+                  acc[grade.term] = grade.transmutedgrade;
+                  return acc;
+              },
+              { Prelim: '5.0', Midterm: '5.0', Final: '5.0' } // Default values if no grades exist
+          );
+
+          students.push({
+              studentgradeid: student.studentgradeid,
+              studentName: student.studentName,
+              subjectcode: student.externalclasslist?.subjectcode,
+              semester: student.externalclasslist?.semester,
+              year: student.externalclasslist?.year,
+              grades,
+          });
+      }
+
+      return {
+          message: `Studentcomputed grades retrieved for student id: ${student_id}.`,
+          students,
+      };
+  } catch (error) {
+      console.error('Error retrieving students for class:', error);
+      throw new Error('Failed to retrieve students for class.');
+  }
+}
+
+
+async function getGradesbyStudentPersonalID(student_personal_id) {
+  try {
+      // Fetch all students associated with the class and their computed grades
+      const studentsWithGrades = await db.Studentlist.findAll({
+          where: { student_personal_id: student_personal_id },
+          attributes: ['studentgradeid', 'studentName', 'student_id', 'student_personal_id'],
+          include: [
+              {
+                  model: db.ComputedGradelist,
+                  attributes: ['term', 'finalcomputedgrade', 'transmutedgrade'],
+                  where: { term: ['Prelim', 'Midterm', 'Final'] },
+                  required: false, // Include students without computed grades
+              },
+              {
+                model:db.Classlist,
+                attributes: ['classid', 'subjectcode', 'semester', 'year'],
+              }
+          ],
+      });
+
+      if (!studentsWithGrades) {
+        throw new Error(`grades for studentpersonalid ${student_personal_id} not found.`);
+    }
+
+      // Compute grades for each student
+      const students = [];
+      for (const student of studentsWithGrades) {
+          const { studentgradeid } = student;
+
+          // Compute Prelim, Midterm, and Final grades for the student
+          await computeGrade(studentgradeid, 'Prelim');
+          await computeGradeMidterm(studentgradeid);
+          await computeGradeFinal(studentgradeid);
+
+          // Reduce ComputedGradelist to map Prelim, Midterm, and Final grades
+          const grades = student.ComputedGradelists.reduce(
+              (acc, grade) => {
+                  acc[grade.term] = grade.transmutedgrade;
+                  return acc;
+              },
+              { Prelim: '5.0', Midterm: '5.0', Final: '5.0' } // Default values if no grades exist
+          );
+
+          students.push({
+            studentgradeid: student.studentgradeid,
+            studentName: student.studentName,
+            subjectcode: student.externalclasslist?.subjectcode,
+            semester: student.externalclasslist?.semester,
+            year: student.externalclasslist?.year,
+            grades,
+           
+          });
+      }
+
+      return {
+          message: `Student computed grades retrieved successfully for studentpersonalid: ${student_personal_id}.`,
+          students,
+      };
   } catch (error) {
       console.error('Error retrieving students for class:', error);
       throw new Error('Failed to retrieve students for class.');
