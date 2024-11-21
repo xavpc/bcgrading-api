@@ -5,13 +5,16 @@ const db = require("_helpers/db"); // Ensure db.Classlist is correctly loaded
 const bcrypt = require("bcryptjs"); // Use bcrypt for hashing passwords
 
 const MISUrlClass =
-  "https://node-mysql-signup-verification-api.onrender.com/external/get-class-active/?campusName=Mandaue%20Campus";
+  "https://benedicto-scheduling-backend.onrender.com/teachers/all-subjects";
 const MISUrlEmployee =
   "https://node-mysql-signup-verification-api.onrender.com/external/get-employee-active/?campusName=Mandaue%20Campus&role=Instructor";
 
+  const MISEnrolledStudents = 
+  "https://node-mysql-signup-verification-api.onrender.com/enrollment/external/all-enrolled-classes"
 module.exports = {
   FetchClasses,
   FetchEmployees, // New function
+  FetchEnrolled,
   getAllGrades // get all grades of students 
 };
 
@@ -30,17 +33,35 @@ async function FetchClasses() {
       `\nFetched ${fetchedClasses.length} classes from MISUrlClass\n`
     );
 
-    // Map fetched data to the db.Classlist model
-    const classesToInsert = fetchedClasses.map((classData) => ({
-      classid: classData.class_id,
-      subjectcode: classData.subjectCode,
-      semester: classData.semesterName,
-      year: classData.schoolYear,
-      teacherid: classData.employee_id,
-      schedule: classData.schedule,
-      isActive: true, // Default to true
-      isDeleted: false, // Default to false
-    }));
+    // Fetch all valid teacher IDs from the accounts table
+    const validTeacherIds = await db.Account.findAll({
+      attributes: ["id"],
+    }).then((accounts) => accounts.map((account) => account.id));
+
+    // Filter out classes with invalid teacher IDs
+    const classesToInsert = fetchedClasses
+      .filter((classData) => validTeacherIds.includes(classData.teacher_id))
+      .map((classData) => ({
+        classid: classData.id,
+        subjectcode: classData.subject_code,
+        semester: classData.semester,
+        year: classData.school_year,
+        teacherid: classData.teacher_id,
+        start: classData.start,
+        end: classData.end,
+        day: classData.day,
+        isActive: true, // Default to true
+        isDeleted: false, // Default to false
+      }));
+
+    // Log how many classes were filtered
+    console.log(
+      `\nFiltered ${fetchedClasses.length - classesToInsert.length} classes due to invalid teacher IDs\n`
+    );
+
+    if (classesToInsert.length === 0) {
+      throw new Error("No valid classes to insert after filtering.");
+    }
 
     // Insert the mapped data into db.Classlist (sequelize model)
     const insertedClasses = await db.Classlist.bulkCreate(classesToInsert, {
@@ -49,7 +70,9 @@ async function FetchClasses() {
         "semester",
         "year",
         "teacherid",
-        "schedule",
+        "start",
+        "end",
+        "day",
         "isActive",
         "isDeleted",
       ],
@@ -62,13 +85,21 @@ async function FetchClasses() {
 
     // Return a message with the details of the operation
     return {
-      message: `Classes fetched and inserted successfully! (Fetched ${fetchedClasses.length} classes from MISUrlClass and inserted ${insertedClasses.length} classes into the database)`,
+      message: `Classes fetched and inserted successfully! (Fetched ${fetchedClasses.length} classes from MISUrlClass, filtered ${fetchedClasses.length - classesToInsert.length} invalid entries, and inserted ${insertedClasses.length} classes into the database)`,
     };
   } catch (error) {
     console.error("Error fetching or inserting classes:", error);
     throw new Error("Failed to fetch or insert classes");
   }
 }
+
+
+
+
+
+
+
+
 
 async function FetchEmployees() {
   try {
@@ -126,6 +157,59 @@ async function FetchEmployees() {
   } catch (error) {
     console.error("Error fetching or inserting employees:", error);
     throw new Error("Failed to fetch or insert employees");
+  }
+}
+
+
+async function FetchEnrolled() {
+  try {
+    // Fetch data from MISUrlClass
+    const response = await axios.get(MISEnrolledStudents);
+    const enrolled = response.data; // Assuming the data is directly in the response body
+
+    if (!Array.isArray(enrolled)) {
+      throw new Error("Invalid response format");
+    }
+
+    // Log how many classes were fetched
+    console.log(
+      `\nFetched ${enrolled.length} classes from MISUrlClass\n`
+    );
+
+    // Map fetched data to the db.Classlist model
+    const datatoInsert = enrolled.map((classData) => ({
+      studentgradeid: classData.class_id,
+      student_id: classData.student_id,
+      student_personal_id: classData.student_personal_id,
+      studentName: classData.studentName,
+      classid: classData.class_id,
+     
+    }));
+
+    // Insert the mapped data into db.Classlist (sequelize model)
+    const insertedEnrollData = await db.Studentlist.bulkCreate(datatoInsert, {
+      updateOnDuplicate: [
+        "studentgradeid",
+        "student_id",
+        "student_personal_id",
+        "studentName",
+        "classid",
+     
+      ],
+    });
+
+    // Log how many classes were inserted into the database
+    console.log(
+      `\nInserted ${insertedEnrollData.length} enrolled students into the database\n`
+    );
+
+    // Return a message with the details of the operation
+    return {
+      message: `Enrollments fetched and inserted successfully! (Fetched ${enrolled.length} Enrollments from MISUrlClass and inserted ${insertedEnrollData.length} enrollments into the database)`,
+    };
+  } catch (error) {
+    console.error("Error fetching or inserting enrollements:", error);
+    throw new Error("Failed to fetch or insert enrollments");
   }
 }
 

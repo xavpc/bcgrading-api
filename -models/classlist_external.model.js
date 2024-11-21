@@ -29,15 +29,23 @@ function model(sequelize) {
     // Teacher
     teacherid: {
       type: DataTypes.INTEGER,
-      allowNull: false,
+      allowNull: false, 
       references: {
         model: "accounts",
         key: "id",
       },
     },
 
-    schedule: {
-      type: DataTypes.TEXT,
+    start: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    end: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    day: {
+      type: DataTypes.STRING,
       allowNull: false,
     },
 

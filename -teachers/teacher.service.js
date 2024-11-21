@@ -56,6 +56,7 @@ module.exports = {
 async function getAll(teacherid) {
     return await db.Classlist.findAll({
         where: { teacherid: teacherid },
+        attributes: ['classid', 'subjectcode', 'semester', 'year', 'teacherid', 'start', 'end','day'],
         include: [
         //     {
         //     model: db.Subjectlist,
@@ -696,9 +697,11 @@ const finalcomputedgrade = parseFloat((attendance5percent + participation5percen
 
 
         // Calculate transmuted grade
-        let transmutedgrade = parseFloat((5 - (4 * finalcomputedgrade) / 99).toFixed(2));
+        let transmutedgrade = parseFloat((5 - (4 * (finalcomputedgrade - 1)) / 99).toFixed(1));
+        
 
-        transmutedgrade = parseFloat(transmutedgrade.toString());
+
+     
        
      
         
@@ -793,7 +796,7 @@ async function computeGradeMidterm(studentgradeid) {
 
         // Calculate updated transmuted grade based on 1/3 Prelim and 2/3 Midterm transmuted grades
         const updatedTransmutedGrade = parseFloat(
-            ((1 / 3 * prelimTransmutedGrade) + (2 / 3 * midtermTransmutedGrade)).toFixed(2)
+            ((1 / 3 * prelimTransmutedGrade) + (2 / 3 * midtermTransmutedGrade)).toFixed(1)
         );
 
         // Update ComputedGradelist for Midterm with the new transmuted grade
@@ -841,7 +844,7 @@ async function computeGradeFinal(studentgradeid) {
 
         // Calculate updated transmuted grade based  on 1/3 Midterm and 2/3 Final
         const updatedTransmutedGrade = parseFloat(
-            ((1 / 3 * midtermTransmutedGrade) + (2 / 3 * finalTransmutedGrade)).toFixed(2)
+            ((1 / 3 * midtermTransmutedGrade) + (2 / 3 * finalTransmutedGrade)).toFixed(1)
         );
 
              // Update ComputedGradelist for Final with the new transmuted grade

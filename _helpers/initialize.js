@@ -9,7 +9,7 @@ async function initializeData(db) {
             db.Semesterlist.findAll(),
             db.Subjectlist.findAll(),
             // db.Classlist.findAll(),        
-            db.Studentlist.findAll()
+            // db.Studentlist.findAll()
         ]);
         
         const [accountData, yearlisttData, semesterlistData, subjectlistData, studentlistData] = existingDataCheck;
@@ -25,26 +25,6 @@ async function initializeData(db) {
  { id: 2, username: "XavRegistar", passwordHash: password123123 ,firstName: "XavRegistar", lastName: "Account", role: "Registrar", isActive: true,  isDeleted: false},
  { id: 3, username: "XavTeacher", passwordHash: password123123 ,firstName: "Marc", lastName: "Xavier", role: "Teacher", isActive: true,  isDeleted: false},
  { id: 4, username: "Xav1", passwordHash: password123123 ,firstName: "Marc", lastName: "XavierStudent", role: "Student", isActive: true,  isDeleted: false},
- { username: "user1", passwordHash: password123123, firstName: "John", lastName: "Doe", role: "Student", isActive: true, isDeleted: false },
- { username: "user2", passwordHash: password123123, firstName: "Jane", lastName: "Smith", role: "Student", isActive: true, isDeleted: false },
- { username: "user3", passwordHash: password123123, firstName: "Emily", lastName: "Johnson", role: "Student", isActive: true, isDeleted: false },
- { username: "user4", passwordHash: password123123, firstName: "Michael", lastName: "Brown", role: "Student", isActive: true, isDeleted: false },
- { username: "user5", passwordHash: password123123, firstName: "Sarah", lastName: "Davis", role: "Student", isActive: true, isDeleted: false },
- { username: "user6", passwordHash: password123123, firstName: "David", lastName: "Martinez", role: "Student", isActive: true, isDeleted: false },
- { username: "user7", passwordHash: password123123, firstName: "Ashley", lastName: "Garcia", role: "Student", isActive: true, isDeleted: false },
- { username: "user8", passwordHash: password123123, firstName: "Joshua", lastName: "Miller", role: "Student", isActive: true, isDeleted: false },
- { username: "user9", passwordHash: password123123, firstName: "Amanda", lastName: "Wilson", role: "Student", isActive: true, isDeleted: false },
- { username: "user10", passwordHash: password123123, firstName: "Daniel", lastName: "Moore", role: "Student", isActive: true, isDeleted: false },
- { username: "user11", passwordHash: password123123, firstName: "Stephanie", lastName: "Taylor", role: "Student", isActive: true, isDeleted: false },
- { username: "user12", passwordHash: password123123, firstName: "Matthew", lastName: "Anderson", role: "Student", isActive: true, isDeleted: false },
- { username: "user13", passwordHash: password123123, firstName: "Elizabeth", lastName: "Thomas", role: "Student", isActive: true, isDeleted: false },
- { username: "user14", passwordHash: password123123, firstName: "Andrew", lastName: "Harris", role: "Student", isActive: true, isDeleted: false },
- { username: "user15", passwordHash: password123123, firstName: "Jessica", lastName: "Clark", role: "Student", isActive: true, isDeleted: false },
- { username: "user16", passwordHash: password123123, firstName: "Brian", lastName: "Lewis", role: "Student", isActive: true, isDeleted: false },
- { username: "user17", passwordHash: password123123, firstName: "Michelle", lastName: "Robinson", role: "Student", isActive: true, isDeleted: false },
- { username: "user18", passwordHash: password123123, firstName: "Christopher", lastName: "Walker", role: "Student", isActive: true, isDeleted: false },
- { username: "user19", passwordHash: password123123, firstName: "Brittany", lastName: "Perez", role: "Student", isActive: true, isDeleted: false },
- { username: "user20", passwordHash: password123123, firstName: "Jason", lastName: "Hall", role: "Student", isActive: true, isDeleted: false },
           ]);
       
           await db.Subjectlist.bulkCreate([

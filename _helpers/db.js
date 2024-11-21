@@ -66,9 +66,9 @@ async function initialize() {
     // await db.Yearlist.sync({ alter: true });
     // await db.Semesterlist.sync({ alter: true });
     // await db.Subjectlist.sync({ alter: true });
-    // await db.Account.sync({ alter: true });
-    // await db.Classlist.sync({ alter: true });
-    // await db.Studentlist.sync({ alter: true });
+    await db.Account.sync({ alter: true });
+    await db.Classlist.sync({ alter: true });
+    await db.Studentlist.sync({ alter: true });
     // await db.Gradelist.sync({ alter: true });
     // await db.Scorelist.sync({ alter: true });
     // await db.ComputedGradelist.sync({ alter: true });

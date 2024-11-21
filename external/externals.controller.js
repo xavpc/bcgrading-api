@@ -7,6 +7,7 @@ const externalService = require("./external.service");
 // routes
 router.get("/fetch-classes", FetchClasses);
 router.get("/fetch-employees", FetchEmployees);
+router.get("/fetch-enrolled-students", FetchEnrolled)
 
 router.get('/get-grades-of-students-by-classid/:classid', getAllGrades);
 
@@ -23,6 +24,13 @@ function FetchClasses(req, res, next) {
 function FetchEmployees(req, res, next) {
   externalService
     .FetchEmployees()
+    .then((result) => res.json(result))
+    .catch(next);
+}
+
+function FetchEnrolled(req, res, next) {
+  externalService
+    .FetchEnrolled()
     .then((result) => res.json(result))
     .catch(next);
 }

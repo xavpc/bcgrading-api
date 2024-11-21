@@ -44,7 +44,7 @@ function model(sequelize) {
 
         finalcomputedgrade:{type: DataTypes.DOUBLE, allowNull: true,defaultValue: 0 },
 
-        transmutedgrade:{ type: DataTypes.DECIMAL(3, 1), allowNull: true,defaultValue: 5.0,  get() {
+        transmutedgrade:{ type: DataTypes.DECIMAL(2, 1), allowNull: true,defaultValue: 5.0,  get() {
             const value = this.getDataValue('transmutedgrade');
             // Remove trailing zeros (e.g., convert "5.00" to "5.0")
             return Number(value).toFixed(1);
