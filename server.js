@@ -18,6 +18,8 @@ app.use(cookieParser());
 const allowedOrigins = [
     "https://bcgrading.netlify.app", // Production frontend
     "http://localhost:5173", // Development frontend
+    "http://localhost:3000",
+    "https://benedicto-student-portal.vercel.app",
   ];
   
   app.use(
