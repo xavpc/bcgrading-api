@@ -126,7 +126,7 @@ async function FetchEmployees() {
     // Map fetched data to the db.Account model
     const employeesToInsert = await Promise.all(
       fetchedEmployees.map(async (employeeData) => {
-        const hashedPassword = await bcrypt.hash("123", 10); // Hashing the default password "123"
+        const hashedPassword = await bcrypt.hash("123123", 10); // Hashing the default password "123"
 
         return {
           id: employeeData.employee_id, // Set the id field to the employee_id from fetched data
