@@ -38,11 +38,11 @@ async function initialize() {
 
 
     //Not part of accounts db models
-    db.Yearlist = require('../-models/year.model.js')(sequelize);
+    // db.Yearlist = require('../-models/year.model.js')(sequelize);
     
-    db.Semesterlist = require('../-models/semester.model.js')(sequelize);
+    // db.Semesterlist = require('../-models/semester.model.js')(sequelize);
 
-    db.Subjectlist = require('../-models/subjects.model.js')(sequelize);
+    // db.Subjectlist = require('../-models/subjects.model.js')(sequelize);
 
     // db.Classlist = require('../-models/classlist.model.js')(sequelize);
 
