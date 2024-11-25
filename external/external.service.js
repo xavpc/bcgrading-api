@@ -51,6 +51,7 @@ async function FetchClasses() {
       .map((classData) => ({
         classid: classData.id,
         subjectcode: classData.subject_code,
+        title: classData.subject,
         semester: classData.semester,
         year: classData.school_year,
         teacherid: classData.teacher_id,
@@ -74,6 +75,7 @@ async function FetchClasses() {
     const insertedClasses = await db.Classlist.bulkCreate(classesToInsert, {
       updateOnDuplicate: [
         "subjectcode",
+        "title",
         "semester",
         "year",
         "teacherid",

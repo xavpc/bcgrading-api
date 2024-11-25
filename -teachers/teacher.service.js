@@ -144,7 +144,10 @@ async function addNewGrade(params) {
   const { classid, term, scoretype, perfectscore } = params;
 
   // Validate that the class exists
-  const classRecord = await db.Classlist.findOne({ where: { classid: classid } });
+  const classRecord = await db.Classlist.findOne({ 
+      attributes: ['classid'],
+    where: { classid: classid } 
+});
   if (!classRecord) {
       throw new Error(`Class with ID: ${classid} not found`);
   }
@@ -195,7 +198,9 @@ async function addNewAttendance(params) {
     const { classid, attendanceDate, term, scoretype } = params;
 
     // Validate that the class exists
-    const classRecord = await db.Classlist.findOne({ where: { classid: classid } });
+    const classRecord = await db.Classlist.findOne({
+        attributes: ['classid'],
+        where: { classid: classid } });
     if (!classRecord) {
         throw new Error(`Class with ID: ${classid} not found`);
     }
@@ -266,7 +271,9 @@ async function addNewAttendance(params) {
     const { classid, term, scoretype, perfectscore } = params;
   
     // Validate that the class exists
-    const classRecord = await db.Classlist.findOne({ where: { classid: classid } });
+    const classRecord = await db.Classlist.findOne({ 
+        attributes: ['classid'],
+        where: { classid: classid } });
     if (!classRecord) {
       throw new Error(`Class with ID: ${classid} not found`);
     }
@@ -873,6 +880,7 @@ async function getGradesPrelim(classid) {
     try {
         // Validate that the class exists
         const classRecord = await db.Classlist.findOne({
+            attributes: ['classid'],
             where: { classid: classid }
         });
 
@@ -930,6 +938,7 @@ async function getGradesMidterm(classid) {
     try {
         // Validate that the class exists
         const classRecord = await db.Classlist.findOne({
+            attributes: ['classid'],
             where: { classid: classid }
         });
 
@@ -987,6 +996,7 @@ async function getGradesFinal(classid) {
     try {
         // Validate that the class exists
         const classRecord = await db.Classlist.findOne({
+            attributes: ['classid'],
             where: { classid: classid }
  
         });

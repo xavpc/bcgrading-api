@@ -17,6 +17,10 @@ function model(sequelize) {
       allowNull: false,
     },
 
+    title: {
+      type: DataTypes.STRING(100),
+      allowNull: false,
+    },
     semester: {
       type: DataTypes.STRING(20), // Updated length
       allowNull: false,
