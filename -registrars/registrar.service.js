@@ -81,7 +81,7 @@ async function getAllTeacher() {
 async function getByID(classid) {
     return await db.Classlist.findOne({
         where: { classid: classid },
-        attributes: ['classid', 'subjectcode', 'semester', 'year', 'teacherid', 'start', 'end','day'],
+        attributes: ['classid', 'title', 'subjectcode', 'semester', 'year', 'teacherid', 'start', 'end','day'],
         include: [
         //     {
         //     model: db.Subjectlist,
