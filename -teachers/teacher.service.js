@@ -57,7 +57,7 @@ module.exports = {
 async function getAll(teacherid) {
     return await db.Classlist.findAll({
         where: { teacherid: teacherid },
-        attributes: ['classid', 'subjectcode', 'semester', 'year', 'teacherid', 'start', 'end','day', 'isActive'],
+        attributes: ['classid', 'subjectcode', 'title', 'semester', 'year', 'teacherid', 'start', 'end','day', 'isActive'],
         include: [
         //     {
         //     model: db.Subjectlist,
