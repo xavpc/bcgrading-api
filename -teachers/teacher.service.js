@@ -951,6 +951,8 @@ async function getGradesMidterm(classid) {
             throw new Error(`Class with id ${classid} not found.`);
         }
 
+        await syncScoreEntriesWithStudents(classid);
+
         // Fetch all students associated with the class
         const students = await db.Studentlist.findAll({
             where: { classid: classid },
@@ -1009,6 +1011,8 @@ async function getGradesFinal(classid) {
         if (!classRecord) {
             throw new Error(`Class with id ${classid} not found.`);
         }
+
+        await syncScoreEntriesWithStudents(classid);
 
         // Fetch all students associated with the class
         const students = await db.Studentlist.findAll({
