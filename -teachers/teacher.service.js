@@ -38,7 +38,8 @@ module.exports = {
   updatePerfectScore,
   archiveGrade,
   computeGradeMidterm,
-  computeGradeFinal
+  computeGradeFinal,
+  syncScoreEntriesWithStudents
 };
 
 
@@ -59,18 +60,18 @@ async function getAll(teacherid) {
         where: { teacherid: teacherid },
         attributes: ['classid', 'subjectcode', 'title', 'semester', 'year', 'teacherid', 'start', 'end','day', 'isActive'],
         include: [
-        //     {
-        //     model: db.Subjectlist,
-        //     as: 'Subjectitle',
-        //     attributes: ['title'] // Include only the title attribute from Subjectlist
-        // },
         {
             model: db.Account,
             as: 'TeacherInfo',
             attributes: ['firstName', 'lastName'] // Include only the title attribute from Subjectlist
         }
     ]
+
+
     });
+
+
+
   }
 
   async function getAllYear(teacherid) {
@@ -106,6 +107,8 @@ async function getStudentsInClass(classid) {
       const classRecord = await db.Classlist.findOne({
           where: { classid: classid }
       });
+
+   
 
       if (!classRecord) {
           throw new Error(`Class with id ${classid} not found.`);
@@ -888,6 +891,8 @@ async function getGradesPrelim(classid) {
             throw new Error(`Class with id ${classid} not found.`);
         }
 
+        await syncScoreEntriesWithStudents(classid);
+
         // Fetch all students associated with the class
         const students = await db.Studentlist.findAll({
             where: { classid: classid },
@@ -1068,7 +1073,7 @@ async function getAllGrades(classid) {
             throw new Error(`Class with id ${classid} not found.`);
         }
 
-      
+        await syncScoreEntriesWithStudents(classid);
 
         // Fetch all students associated with the class and their computed grades
         const studentsWithGrades = await db.Studentlist.findAll({
@@ -1275,4 +1280,73 @@ async function archiveGrade(gradeid) {
         message: "Grade successfully deleted",
         gradeDetails: deleteGrade,
     };
+}
+
+
+async function syncScoreEntriesWithStudents(classid) {
+    try {
+        // Fetch all Gradelist entries for the given classid
+        const gradeEntries = await db.Gradelist.findAll({
+            where: { classid: classid },
+            attributes: ['gradeid', 'term', 'scoretype', 'perfectscore']
+        });
+
+        if (gradeEntries.length === 0) {
+            throw new Error(`No grade entries found for class with ID: ${classid}`);
+        }
+
+        // Fetch all Studentlist entries for the given classid
+        const studentsInClass = await db.Studentlist.findAll({
+            where: { classid: classid },
+            attributes: ['studentgradeid']
+        });
+
+        if (studentsInClass.length === 0) {
+            throw new Error(`No students found for class with ID: ${classid}`);
+        }
+
+        // Prepare an array for missing score entries
+        const missingScoreEntries = [];
+
+        // Loop through each Gradelist entry
+        for (const grade of gradeEntries) {
+            // Loop through each student
+            for (const student of studentsInClass) {
+                // Check if a corresponding score entry exists for this grade and student
+                const existingScoreEntry = await db.Scorelist.findOne({
+                    where: {
+                        gradeid: grade.gradeid,
+                        studentgradeid: student.studentgradeid
+                    },
+                    attributes: ['scoreid']
+                });
+
+                // If no score entry exists, add to the batch array
+                if (!existingScoreEntry) {
+                    missingScoreEntries.push({
+                        gradeid: grade.gradeid,
+                        studentgradeid: student.studentgradeid,
+                        attendanceDate: grade.attendanceDate,
+                        term: grade.term,
+                        scoretype: grade.scoretype,
+                        score: 0, // Default initial score
+                        perfectscore: grade.perfectscore // Use perfect score from Gradelist
+                    });
+                }
+            }
+        }
+
+        // Insert all missing entries in a single batch
+        if (missingScoreEntries.length > 0) {
+            await db.Scorelist.bulkCreate(missingScoreEntries);
+        }
+
+        return {
+            message: `Score entries synchronized successfully for class with ID: ${classid}`,
+            addedEntries: missingScoreEntries.length
+        };
+    } catch (error) {
+        console.error('Error synchronizing score entries:', error);
+        throw error;
+    }
 }
